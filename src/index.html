@@ -129,7 +129,7 @@ h1{font-size:40px;line-height:1.2;margin:8px 0;color:var(--p2)}
 <script>
 (function(){
 "use strict";
-var APP_VERSION="1.5.0";
+var APP_VERSION="1.5.1";
 
 /* ---------- נתונים ---------- */
 var CATS={
@@ -934,9 +934,13 @@ function startRec(){
     }catch(e){}
     mr.start();
     REC.auto=setTimeout(function(){stopRec()},25000);
-  }).catch(function(){
+  }).catch(function(e){
     $("recFallback").hidden=false;
+    var nm=(e&&e.name)||"";
     $("recMsg").textContent="לא התאפשרה גישה למיקרופון. אפשר לאשר אותה בהגדרות המכשיר, או לבחור הקלטה קיימת 💛";
+    var d=document.createElement("p");d.className="note";d.dir="ltr";d.style.textAlign="center";
+    d.textContent="v"+APP_VERSION+(nm?" · "+nm:"");
+    $("recMsg").appendChild(d);
   });
 }
 function stopRec(){
