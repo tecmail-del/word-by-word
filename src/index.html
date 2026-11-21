@@ -129,6 +129,7 @@ h1{font-size:40px;line-height:1.2;margin:8px 0;color:var(--p2)}
 <script>
 (function(){
 "use strict";
+var APP_VERSION="1.5.0";
 
 /* ---------- נתונים ---------- */
 var CATS={
@@ -1229,6 +1230,7 @@ function openParent(){
     '</div>'+
     '<button class="link" id="sCopy" type="button">העתקת הסיכום</button>'+
     '<button class="link" id="pReset">איפוס נתוני התקדמות</button>'+
+    '<p class="note" style="text-align:center">גרסה '+APP_VERSION+'</p>'+
     '<button class="btn" id="pClose" style="margin-top:12px">סגירה</button></div>';
   d.hidden=false;
   var sh=d.querySelector(".sheet");
