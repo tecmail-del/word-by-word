@@ -227,13 +227,17 @@ def main():
         sys.exit("לא נמצא אזור AUDIO בקובץ ה-HTML (גרסה ישנה?)")
 
     out = a.out or re.sub(r"\.html?$", "", a.html) + ".audio.html"
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     open(out, "w", encoding="utf-8").write(new_html)
     print("\nנכתב:", out)
     nw = len([k for k in audio if not k.startswith("S:")])
     ns = len(audio) - nw
     print("מילים עם אודיו: %d מתוך %d, משפטים: %d מתוך %d, כ-%d KB" % (nw, len(words), ns, len(sent), (total + 1023) // 1024))
     if missing:
-        print("בלי אודיו (ינוגנו בהקראת המכשיר):", " ".join(missing))
+        if len(missing) > 20:
+            print("בלי אודיו: %d פריטים (ינוגנו בהקראת המכשיר)" % len(missing))
+        else:
+            print("בלי אודיו (ינוגנו בהקראת המכשיר):", " ".join(missing))
 
 
 if __name__ == "__main__":

@@ -76,6 +76,8 @@ h1{font-size:40px;line-height:1.2;margin:8px 0;color:var(--p2)}
 .sheet textarea,.sheet select{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border:2px solid var(--line);font-size:18px;background:#fff;color:var(--ink)}
 .sheet textarea{min-height:230px;line-height:1.45;user-select:text;-webkit-user-select:text}
 .lvl{display:flex;gap:6px;align-items:center;justify-content:center;font-size:18px;color:var(--muted);font-weight:600}
+.meter{display:flex;gap:6px;align-items:center;justify-content:center;height:64px;margin:8px 0}
+.meter i{display:block;width:10px;height:8px;border-radius:6px;background:var(--p);transition:height .08s}
 .sent{font-size:30px;font-weight:700;line-height:1.5;margin:8px 4px 4px;color:var(--ink)}
 .blank{display:inline-block;min-width:3.2em;border-bottom:4px dotted var(--amber);color:var(--amber);text-align:center;margin:0 4px}
 .sentfull{font-size:26px;line-height:1.5;margin:10px 4px 4px}
@@ -288,7 +290,7 @@ function sentOf(w){return SENT[w.w]||w.sent||""}
 function sentParts(w){var m=sentOf(w).match(/^(.*)\[([^\]]+)\](.*)$/);return m?{a:m[1],t:m[2],b:m[3]}:null}
 function sentBlank(w){var p=sentParts(w);return p?esc(p.a)+'<span class="blank">▁▁▁▁</span>'+esc(p.b):""}
 function sentFull(w){var p=sentParts(w);return p?esc(p.a)+'<mark>'+esc(p.t)+'</mark>'+esc(p.b):""}
-var DEFAULTS={name:"",perRound:6,levels:[1,2,3],levelMode:"auto",level:1,allowPick:true,sentNoPic:false,v:2,cats:Object.keys(CATS),mode:"say",hints:[1,2,3,4],hintOrder:"sem",custom:[],
+var DEFAULTS={name:"",perRound:6,levels:[1,2,3],levelMode:"auto",level:1,allowPick:true,sentNoPic:false,showScoreChild:false,saveRec:true,v:2,cats:Object.keys(CATS),mode:"say",hints:[1,2,3,4],hintOrder:"sem",custom:[],
   speakHints:true,speakWord:true,sounds:true,nudge:false,email:"",phone:"",shareName:false};
 
 var PRAISE_GOOD=["כל הכבוד! מצאת את המילה 🌟","איזה יופי, המילה הגיעה אלייך 💛","נהדר! עבדת יפה ✨","מעולה! המוח שלך עשה עבודה מצוינת 🌈"];
@@ -322,9 +324,11 @@ S.custom.forEach(addCustom);
 if(!(S.levels instanceof Array))S.levels=[1,2,3];
 S.level=Math.max(1,Math.min(10,+S.level||1));
 var ST=load("wg.stats")||{rounds:0,words:{}};
+if(!ST.rec)ST.rec=[];
 var INTERVALS=[0,1,3,7,14,30];
 if(!ST.words)ST.words={};
 if(!ST.log)ST.log=[];
+if(!ST.rec)ST.rec=[];
 function saveS(){save("wg.settings",S)}
 function saveST(){save("wg.stats",ST)}
 
@@ -480,12 +484,14 @@ function renderHome(){
     (S.allowPick!==false?levelPickerHtml():'')+
     '<button class="btn big" id="start">משחק מילים 🌟</button>'+
     '<button class="btn big alt" id="startS">משחק משפטים 💬</button>'+
+    '<button class="btn alt" id="startR">🎙️ הקלטת משפט קצר</button>'+
     '<p class="hintline">בלי שעון ובלי לחץ. אפשר לקחת את כל הזמן 💛</p>'+
     '<button class="gear" id="gear" aria-label="הגדרות למלווים, לחיצה ארוכה לפתיחה">⚙️</button>'+
     '</section>');
   $("greet").textContent=(S.name?("שלום "+S.name+"! "):"")+"בואי נשחק קצת עם מילים.";
   $("start").onclick=function(){sfx.tap();startRound(false)};
   $("startS").onclick=function(){sfx.tap();startRound(true)};
+  $("startR").onclick=function(){sfx.tap();renderRec()};
   function setLevel(n){
     n=Math.max(1,Math.min(10,n));
     S.level=n;S.levelMode="auto";saveS();sfx.tap();renderHome();
@@ -809,11 +815,219 @@ function openToolbox(){
 }
 function closeToolbox(){$("sheet").hidden=true;$("sheet").innerHTML="";stopSpeak()}
 
+/* ---------- הקלטה ומדד שטף ---------- */
+function pctile(a,p){var b=a.slice().sort(function(m,n){return m-n});return b[Math.min(b.length-1,Math.floor(p*(b.length-1)))]}
+function analyzeFluency(x,sr){
+  var hop=Math.round(sr*0.01),win=Math.round(sr*0.025);
+  var n=Math.floor((x.length-win)/hop);
+  if(n<30)return {ok:false,q:"short"};
+  var db=new Array(n),f,i,o,sum,v;
+  for(f=0;f<n;f++){o=f*hop;sum=0;for(i=0;i<win;i++){v=x[o+i];sum+=v*v}db[f]=10*Math.log10(sum/win+1e-10)}
+  var m=new Array(n);
+  for(f=0;f<n;f++){var w=[];for(i=-2;i<=2;i++)w.push(db[Math.max(0,Math.min(n-1,f+i))]);w.sort(function(a,b){return a-b});m[f]=w[2]}
+  var noise=pctile(m,0.1),ref=pctile(m,0.95),range=ref-noise;
+  if(range<15)return {ok:false,q:"noisy",range:range};
+  var thr=Math.max(noise+0.3*range,noise+8);
+  var act=m.map(function(d){return d>thr});
+  function runs(arr,val){var r=[],st=-1;for(var k=0;k<=arr.length;k++){var is=k<arr.length&&arr[k]===val;if(is&&st<0)st=k;if(!is&&st>=0){r.push([st,k-1]);st=-1}}return r}
+  runs(act,false).forEach(function(g){if(g[0]>0&&g[1]<n-1&&g[1]-g[0]+1<15){for(var k=g[0];k<=g[1];k++)act[k]=true}});
+  runs(act,true).forEach(function(g){if(g[1]-g[0]+1<5){for(var k=g[0];k<=g[1];k++)act[k]=false}});
+  var sp=runs(act,true);
+  if(!sp.length)return {ok:false,q:"short"};
+  var first=sp[0][0],last=sp[sp.length-1][1],winSec=(last-first+1)/100;
+  if(winSec<1.0)return {ok:false,q:"short",win:winSec};
+  var pauses=0,longP=0,longest=0,pauseT=0;
+  for(i=1;i<sp.length;i++){
+    var g=sp[i][0]-sp[i-1][1]-1;
+    if(g>=30){pauses++;pauseT+=g/100;if(g>longest)longest=g;if(g>=80)longP++}
+  }
+  longest=longest/100;
+  var env=new Array(n);
+  for(f=0;f<n;f++){var t=0,c=0;for(i=-2;i<=2;i++){var q=f+i;if(q>=0&&q<n){t+=m[q];c++}}env[f]=t/c}
+  var peaks=[];
+  for(f=first+1;f<last;f++){if(env[f]>=env[f-1]&&env[f]>env[f+1]&&env[f]>thr+6)peaks.push(f)}
+  var kept=[];
+  peaks.forEach(function(pk){
+    if(!kept.length){kept.push(pk);return}
+    var pv=kept[kept.length-1],dip=1e9;
+    for(var k=pv;k<=pk;k++)if(env[k]<dip)dip=env[k];
+    if(pk-pv<10||dip>Math.min(env[pv],env[pk])-2){if(env[pk]>env[pv])kept[kept.length-1]=pk}else kept.push(pk);
+  });
+  var nuclei=kept.length,artSec=Math.max(0.5,winSec-pauseT);
+  var ratio=pauseT/winSec;
+  var score=100-120*Math.max(0,ratio-0.15)-10*longP-4*Math.max(0,pauses-2);
+  var artRate=nuclei/artSec;
+  if(artRate<2)score-=10;
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  return {ok:true,q:"ok",win:Math.round(winSec*10)/10,speechPct:Math.round(100*(1-ratio)),pauses:pauses,longPauses:longP,longest:Math.round(longest*10)/10,nuclei:nuclei,artRate:Math.round(artRate*10)/10,score:score};
+}
+function analyzeBlob(blob){
+  return blob.arrayBuffer().then(function(buf){
+    var AC2=window.AudioContext||window.webkitAudioContext,c=new AC2();
+    return new Promise(function(res,rej){c.decodeAudioData(buf,res,rej)}).then(function(ab){
+      var out=analyzeFluency(ab.getChannelData(0),ab.sampleRate);
+      try{c.close()}catch(e){}
+      return out;
+    });
+  });
+}
+function recSentence(){
+  var p=pool(true).filter(function(w){var t=sentOf(w).replace(/[\[\]]/g,"");return t.split(" ").length<=6});
+  if(!p.length)p=pool(true);
+  var w=pick(p);
+  if(REC.last&&p.length>1){var tries=0;while(w.w===REC.last&&tries<5){w=pick(p);tries++}}
+  return w;
+}
+var REC={last:"",url:null};
+function recCleanup(){
+  try{if(REC.stream)REC.stream.getTracks().forEach(function(t){t.stop()})}catch(e){}
+  try{if(REC.ctx)REC.ctx.close()}catch(e){}
+  clearTimeout(REC.auto);cancelAnimationFrame(REC.raf);
+  REC.stream=null;REC.ctx=null;REC.mr=null;
+  if(REC.url){try{URL.revokeObjectURL(REC.url)}catch(e){}REC.url=null}
+}
+function renderRec(){
+  clearNudge();stopSpeak();recCleanup();
+  var w=recSentence();REC.last=w.w;REC.w=w;
+  var txt=sentOf(w).replace(/[\[\]]/g,"");
+  html('<div class="top"><button class="icon" id="homeBtn" aria-label="סיימנו להיום">🏠</button><div class="dots"></div><div style="width:52px"></div></div>'+
+    '<main class="stage">'+
+      '<div class="card"><div class="emoji" aria-hidden="true">'+w.e+'</div>'+
+      '<div class="prompt">בואי נגיד את המשפט ביחד 🎙️</div>'+
+      '<div class="sentfull" style="font-size:30px">'+esc(txt)+'</div>'+
+      '<button class="spk" id="recListen" type="button">🔊 לשמוע קודם</button></div>'+
+      '<div id="recArea"><button class="btn big" id="recStart" type="button">🎙️ להקליט</button></div>'+
+      '<div class="msg" id="recMsg">אפשר לקחת את הזמן. אין למהר 💛</div>'+
+      '<div id="recFallback" hidden style="text-align:center"><p class="note">אי אפשר להקליט ישירות כאן. אפשר להקליט באפליקציית ההקלטה של המכשיר ולבחור את הקובץ:</p>'+
+      '<label class="btn alt" style="display:block;cursor:pointer">📁 בחירת הקלטה<input type="file" id="recFile" accept="audio/*" hidden></label></div>'+
+    '</main>');
+  $("homeBtn").onclick=function(){sfx.tap();recCleanup();renderHome()};
+  $("recListen").onclick=function(){saySentence(w)};
+  $("recStart").onclick=startRec;
+  $("recFile").onchange=function(){var f=this.files&&this.files[0];if(f)finishRec(f,false)};
+}
+function startRec(){
+  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)||typeof MediaRecorder==="undefined"){$("recFallback").hidden=false;$("recMsg").textContent="";return}
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,autoGainControl:false,noiseSuppression:true}}).then(function(stream){
+    REC.stream=stream;
+    var chunks=[],mt="";
+    ["audio/webm;codecs=opus","audio/webm","audio/mp4"].some(function(t){if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t)){mt=t;return true}return false});
+    var mr=mt?new MediaRecorder(stream,{mimeType:mt}):new MediaRecorder(stream);
+    REC.mr=mr;
+    mr.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
+    mr.onstop=function(){var blob=new Blob(chunks,{type:mr.mimeType||mt||"audio/webm"});try{stream.getTracks().forEach(function(t){t.stop()})}catch(e){}finishRec(blob,true)};
+    var bars="";for(var i=0;i<12;i++)bars+='<i></i>';
+    $("recArea").innerHTML='<div class="meter" id="meter" aria-hidden="true">'+bars+'</div><button class="btn big" id="recStop" type="button">✔ סיימתי</button>';
+    $("recMsg").textContent="מקשיבה לך... אפשר לקחת את הזמן 💛";
+    $("recStop").onclick=stopRec;
+    try{
+      var AC2=window.AudioContext||window.webkitAudioContext;REC.ctx=new AC2();
+      var src=REC.ctx.createMediaStreamSource(stream),an=REC.ctx.createAnalyser();an.fftSize=512;src.connect(an);
+      var data=new Uint8Array(an.fftSize),els=document.querySelectorAll("#meter i");
+      (function loop(){
+        an.getByteTimeDomainData(data);var mx=0;for(var k=0;k<data.length;k++){var d=Math.abs(data[k]-128);if(d>mx)mx=d}
+        var lvl=Math.min(1,mx/60);
+        Array.prototype.forEach.call(els,function(el,k){el.style.height=(8+Math.max(0,lvl*40*(0.5+0.5*Math.sin(k+Date.now()/120))))+"px"});
+        REC.raf=requestAnimationFrame(loop);
+      })();
+    }catch(e){}
+    mr.start();
+    REC.auto=setTimeout(function(){stopRec()},25000);
+  }).catch(function(){
+    $("recFallback").hidden=false;
+    $("recMsg").textContent="לא התאפשרה גישה למיקרופון. אפשר לאשר אותה בהגדרות המכשיר, או לבחור הקלטה קיימת 💛";
+  });
+}
+function stopRec(){
+  clearTimeout(REC.auto);cancelAnimationFrame(REC.raf);
+  try{if(REC.mr&&REC.mr.state!=="inactive")REC.mr.stop()}catch(e){}
+  if($("recArea"))$("recArea").innerHTML='<div class="msg">רגע, שומעת את ההקלטה... 🎧</div>';
+}
+function blobB64(blob){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(",")[1]||"")};r.onerror=rej;r.readAsDataURL(blob)})}
+function recExt(t){return /mp4|aac/.test(t)?"m4a":/ogg/.test(t)?"ogg":/wav/.test(t)?"wav":"webm"}
+function stamp(){var d=new Date(),z=function(n){return(n<10?"0":"")+n};return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())+"_"+z(d.getHours())+"-"+z(d.getMinutes())+"-"+z(d.getSeconds())}
+function fileBase(txt){return String(txt).replace(/[\u0591-\u05C7]/g,"").replace(/[\\\/:*?"<>|\[\]]/g,"").replace(/\s+/g," ").trim().slice(0,80)||"הקלטה"}
+var DIR_LABEL={DOCUMENTS:"בתיקיית המסמכים (Documents), בתוך התיקייה: מילה אחרי מילה",EXTERNAL:"באחסון של האפליקציה (Android/data), בתוך התיקייה: מילה אחרי מילה",DATA:"באחסון הפנימי של האפליקציה, שאינו נגיש דרך מנהל הקבצים"};
+function saveRecording(blob,base){
+  var ext=recExt(blob.type||""),fs=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Filesystem;
+  if(fs){
+    return blobB64(blob).then(function(b64){
+      var dirs=["DOCUMENTS","EXTERNAL","DATA"],folder="מילה אחרי מילה/";
+      function tryDir(i){
+        if(i>=dirs.length)return Promise.reject(new Error("nodir"));
+        var d=dirs[i],name=base+"."+ext;
+        return fs.stat({path:folder+name,directory:d}).then(function(){name=base+" "+stamp()+"."+ext},function(){}).then(function(){
+          return fs.writeFile({path:folder+name,directory:d,data:b64,recursive:true}).then(function(){return {name:name,where:DIR_LABEL[d]}});
+        }).catch(function(){return tryDir(i+1)});
+      }
+      return tryDir(0);
+    });
+  }
+  return new Promise(function(res,rej){
+    try{
+      var name=base+"."+ext,u=URL.createObjectURL(blob),a=document.createElement("a");
+      a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(u)},4000);
+      res({name:name,where:"בתיקיית ההורדות של הדפדפן"});
+    }catch(e){rej(e)}
+  });
+}
+function finishRec(blob,fromMic){
+  try{REC.url=URL.createObjectURL(blob)}catch(e){REC.url=null}
+  var txt=sentOf(REC.w).replace(/[\[\]]/g,"");
+  var doSave=!!(fromMic&&S.saveRec);
+  REC.saved=null;REC.saveFail=false;
+  var sp=doSave?saveRecording(blob,fileBase(txt)).then(function(r){REC.saved=r},function(){REC.saveFail=true}):Promise.resolve();
+  Promise.all([analyzeBlob(blob).catch(function(){return {ok:false,q:"decode"}}),sp]).then(function(a){renderRecResult(a[0])});
+}
+var PRAISE_REC=["איזה יופי, הקלטת משפט! 🌟","כל הכבוד על האומץ להקליט 💛","יפה מאוד שניסית. אפשר להקשיב לעצמך 🎧"];
+function renderRecResult(m){
+  var w=REC.w;
+  var msg=pick(PRAISE_REC);
+  if(m.ok){
+    ST.rec.push({t:Date.now(),w:w.w,win:m.win,sp:m.speechPct,p:m.pauses,lp:m.longPauses,lg:m.longest,ar:m.artRate,sc:m.score,f:REC.saved?REC.saved.name:""});
+    if(ST.rec.length>100)ST.rec=ST.rec.slice(-100);
+    saveST();
+  }else{
+    msg=m.q==="noisy"?"ההקלטה לא הייתה ברורה מספיק. אפשר לנסות שוב במקום שקט יותר 💛":m.q==="short"?"ההקלטה הייתה קצרה מאוד. אפשר לנסות שוב ולומר את כל המשפט 💛":"לא הצלחתי לשמוע את ההקלטה. אפשר לנסות שוב 💛";
+  }
+  var saveNote=REC.saved?'<p class="note" style="text-align:center">ההקלטה נשמרה במכשיר 💾</p>':(REC.saveFail?'<p class="note" style="text-align:center">לא הצלחנו לשמור את ההקלטה במכשיר.</p>':'');
+  var scoreHtml=(m.ok&&S.showScoreChild)?'<div class="bubble q" style="text-align:center;margin-top:10px">מדד שטף: <b>'+m.score+'</b><br><small>זה רק מדד טכני לתרגול, לא ציון על מי שאת</small></div>':'';
+  sfx.good();
+  html('<div class="top"><button class="icon" id="homeBtn" aria-label="סיימנו להיום">🏠</button><div class="dots"></div><div style="width:52px"></div></div>'+
+    '<main class="stage"><div class="card"><div class="emoji" aria-hidden="true">'+w.e+'</div>'+
+    '<div class="sentfull">'+esc(sentOf(w).replace(/[\[\]]/g,""))+'</div></div>'+
+    '<div class="bubble good" style="text-align:center">'+msg+'</div>'+scoreHtml+saveNote+
+    (REC.url?'<button class="btn alt" id="recPlay" type="button">🔊 להקשיב לעצמי</button>':'')+
+    '<button class="btn big" id="recNext" type="button">משפט אחר ➡️</button>'+
+    '<button class="btn alt" id="recAgain" type="button">🎙️ להקליט שוב</button>'+
+    '</main>');
+  $("homeBtn").onclick=function(){sfx.tap();recCleanup();renderHome()};
+  if($("recPlay"))$("recPlay").onclick=function(){try{stopSpeak();if(curAudio){curAudio.pause()}var a=new Audio(REC.url);curAudio=a;a.play()}catch(e){}};
+  $("recNext").onclick=function(){sfx.tap();renderRec()};
+  $("recAgain").onclick=function(){
+    sfx.tap();
+    var keep=REC.w;recCleanup();
+    renderRec();
+  };
+}
+
 /* ---------- סיכום ושיתוף ---------- */
 function fmtDate(t){var d=new Date(t);return d.getDate()+"."+(d.getMonth()+1)+"."+d.getFullYear()}
 function emojiOf(word){var f=WORDS.filter(function(x){return x.w===word})[0];return f?f.e+" ":""}
 function topWords(map,n){
   return Object.keys(map).sort(function(a,b){return map[b]-map[a]}).slice(0,n).map(function(k){return emojiOf(k)+k}).join("، ");
+}
+function recLines(from){
+  var R2=(ST.rec||[]).filter(function(x){return x.t>=from});
+  if(!R2.length)return [];
+  var avg=function(a){return Math.round(a.reduce(function(m,n){return m+n},0)/a.length)};
+  var o=["הקלטות משפטים: "+R2.length+". מדד שטף ממוצע (0 עד 100): "+avg(R2.map(function(x){return x.sc}))+", שיעור זמן דיבור ממוצע: "+avg(R2.map(function(x){return x.sp}))+"%, הפסקות ממוצעות למשפט: "+(Math.round(10*R2.reduce(function(m,x){return m+x.p},0)/R2.length)/10)+"."];
+  if(R2.length>=6){var h=Math.floor(R2.length/2);o.push("ממוצע בחצי הראשון: "+avg(R2.slice(0,h).map(function(x){return x.sc}))+", בחצי האחרון: "+avg(R2.slice(h).map(function(x){return x.sc}))+".")}
+  var my=R2.filter(function(x){return x.m==="y"}).length,ma=R2.filter(function(x){return x.m==="a"}).length,mn=R2.filter(function(x){return x.m==="n"}).length;
+  if(my+ma+mn)o.push("סימון המלווה אחרי הקשבה להקלטות: נכון "+my+", כמעט "+ma+", לא נכון "+mn+" (מתוך "+(my+ma+mn)+" שסומנו).");
+  o.push("המדד נמדד אוטומטית ממשכי הפסקות וקצב בלבד, ללא בדיקת תוכן או הגייה. הוא לא אומת מחקרית, מושפע מרעש ומאופי המשפט, ואינו מחליף הערכת דיבור מקצועית. ההקלטות עצמן לא נשמרות.");
+  return o;
 }
 function buildReport(days){
   var from=days?Date.now()-days*864e5:0;
@@ -821,7 +1035,7 @@ function buildReport(days){
   var named=S.shareName&&S.name;
   var head="סיכום תרגול שליפת מילים"+(named?" – "+S.name:"");
   var period=days?("ב־"+days+" הימים האחרונים"):"בכל התקופה";
-  if(!L.length)return head+"\n\nעדיין אין נתוני תרגול "+period+".";
+  if(!L.length){var r0=recLines(from);return head+"\n\nעדיין אין נתוני תרגול "+period+"."+(r0.length?"\n\n"+r0.join("\n"):"")}
   var dayset={};L.forEach(function(x){dayset[fmtDate(x.t)]=1});
   var dayN=Object.keys(dayset).length;
   var free=0,some=0,full=0,almost=0,rev=0,hardM={},easyM={},stage3=0;
@@ -861,6 +1075,8 @@ function buildReport(days){
       s.push("");s.push("שיעור המילים שנשלפו בלי רמז: "+cr+"% (בתקופה הקודמת: "+pr+"%). במעבר לרמות קשות יותר השיעור יכול לרדת גם כשיש התקדמות.");
     }
   }
+  var rl=recLines(from);
+  if(rl.length){s.push("");rl.forEach(function(x){s.push(x)})}
   var hw=topWords(hardM,8),ew=topWords(easyM,8);
   s.push("");
   s.push("מילים שדרשו יותר עזרה: "+(hw||"אין"));
@@ -963,6 +1179,15 @@ function openParent(){
     tg("speakHints","הקראת רמזים בקול")+
     tg("sounds","צלילים נעימים")+
     '<p class="note">ההקראה משתמשת בקול העברי של המכשיר, אם מותקן.</p>'+
+    '<h3>הקלטת משפט ומדד שטף</h3>'+
+    '<p class="note">בכפתור "הקלטת משפט קצר" הילדה אומרת משפט, והאפליקציה מנתחת במכשיר בלבד את משכי ההפסקות וקצב הדיבור. ההקלטה לא נשמרת ולא נשלחת, ונשמרים רק מספרים.</p>'+
+    tg("showScoreChild","להציג לילדה את המדד אחרי ההקלטה","כברירת מחדל הילדה רואה רק עידוד, והמדד מוצג רק כאן.")+
+    '<p class="note"><b>מגבלות:</b> המדד טכני בלבד. הוא לא בודק אם המילים נכונות או הגייה, ומושפע מרעש ומקרבה למיקרופון. הוא לא אומת מחקרית על ילדים דוברי עברית. הפסקה אחת אינה בהכרח קושי, ולכן כדאי להסתכל על מגמה לאורך זמן ולא על הקלטה בודדת.</p>'+
+    tg("saveRec","לשמור כל הקלטה כקובץ במכשיר (שם הקובץ הוא המשפט)","הקובץ מכיל את קולה של הילדה ונשאר במכשיר בלבד, ואינו נשלח לשום מקום. אם יש כבר קובץ בשם הזה, יתווסף לשם תאריך ושעה. מי שמחזיק במכשיר יכול לפתוח את הקבצים. אפשר לכבות כאן.")+
+    '<div id="recList"></div>'+
+    '<label class="btn alt" style="display:block;cursor:pointer;text-align:center">📁 ניתוח קובץ הקלטה קיים<input type="file" id="recTest" accept="audio/*" hidden></label>'+
+    '<p class="note" id="recTestMsg"></p>'+
+    '<button class="link" id="recClear" type="button">מחיקת נתוני ההקלטות</button>'+
     '<h3>מילים אישיות</h3>'+
     '<p class="note">מילים שחשובות לילדה ביומיום, כמו שם של חפץ בבית או של חיית מחמד. מחקרים מצאו שהשיפור הוא בעיקר במילים שתורגלו, ולכן כדאי להוסיף כאן מילים שבאמת חסרות לה.</p>'+
     '<div style="display:grid;gap:8px">'+
@@ -1035,6 +1260,36 @@ function openParent(){
       };
     });
   }
+  function renderRecList(){
+    var R2=ST.rec||[],h="";
+    if(!R2.length)h='<p class="note">עדיין אין הקלטות.</p>';
+    else h='<p class="note">אחרי שמקשיבים לקובץ, אפשר לסמן אם המשפט נאמר נכון. הסימון נשמר ונכלל בסיכום, והילדה לא רואה אותו.</p>';
+    for(var k=R2.length-1;k>=Math.max(0,R2.length-8);k--){
+      var x=R2[k],mk=function(v,l){return '<button type="button" class="link" style="font-weight:'+(x.m===v?'800':'400')+';text-decoration:'+(x.m===v?'none':'underline')+'" data-mk="'+k+'" data-v="'+v+'">'+(x.m===v?'✔ ':'')+l+'</button>'};
+      h+='<div class="stat" style="display:block;margin:4px 0;width:100%">'+fmtDate(x.t)+' · '+esc(x.w)+' · מדד '+x.sc+' · דיבור '+x.sp+'% · הפסקות '+x.p+' · הארוכה '+x.lg+' שנ׳'+
+        (x.f?'<br><small>קובץ: '+esc(x.f)+'</small>':'')+
+        '<br>'+mk("y","נכון")+mk("a","כמעט")+mk("n","לא נכון")+'</div>';
+    }
+    $("recList").innerHTML=h;
+    Array.prototype.forEach.call($("recList").querySelectorAll("[data-mk]"),function(b){
+      b.onclick=function(){var e=ST.rec[+b.getAttribute("data-mk")],v=b.getAttribute("data-v");e.m=(e.m===v?"":v);saveST();renderRecList();refreshRep()};
+    });
+  }
+  renderRecList();
+  $("recTest").onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    $("recTestMsg").textContent="מנתחת...";
+    analyzeBlob(f).then(function(m){
+      $("recTestMsg").textContent=m.ok?("מדד "+m.score+" · משך "+m.win+" שנ׳ · דיבור "+m.speechPct+"% · הפסקות "+m.pauses+" (ארוכות "+m.longPauses+") · הארוכה "+m.longest+" שנ׳ · קצב "+m.artRate+" הברות לשנייה. לא נשמר."):(m.q==="noisy"?"ההקלטה רועשת מדי לניתוח.":m.q==="short"?"ההקלטה קצרה מדי.":"לא ניתן לפענח את הקובץ.");
+    }).catch(function(){$("recTestMsg").textContent="לא ניתן לפענח את הקובץ."});
+    this.value="";
+  };
+  var recArmed=false;
+  $("recClear").onclick=function(){
+    var b=this;
+    if(!recArmed){recArmed=true;b.textContent="לחצי שוב כדי למחוק את נתוני ההקלטות";setTimeout(function(){recArmed=false;b.textContent="מחיקת נתוני ההקלטות"},5000);return}
+    recArmed=false;b.textContent="מחיקת נתוני ההקלטות";ST.rec=[];saveST();renderRecList();refreshRep();
+  };
   $("cwLvl").value=String(S.level);
   renderCW();
   $("cwAdd").onclick=function(){
@@ -1068,7 +1323,7 @@ function openParent(){
     var b=this;
     if(!resetArmed){resetArmed=true;b.textContent="לחצי שוב כדי למחוק את כל נתוני ההתקדמות";setTimeout(function(){resetArmed=false;b.textContent="איפוס נתוני התקדמות"},5000);return}
     resetArmed=false;b.textContent="איפוס נתוני התקדמות";
-    ST={rounds:0,words:{},log:[]};saveST();$("pStats").innerHTML=statsHtml();refreshRep();
+    ST={rounds:0,words:{},log:[],rec:[]};saveST();$("pStats").innerHTML=statsHtml();refreshRep();
   };
 }
 function closeParent(){
