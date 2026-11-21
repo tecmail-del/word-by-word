@@ -1,0 +1,18 @@
+{
+  "name": "word-by-word",
+  "version": "1.0.0",
+  "private": true,
+  "description": "מילה אחרי מילה: משחק תרגול שליפת מילים לילדים",
+  "scripts": {
+    "audio": "python3 scripts/build_audio.py --html src/index.html --engine folder --folder recordings --out www/index.html",
+    "sync": "npm run audio && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/share": "^6.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}

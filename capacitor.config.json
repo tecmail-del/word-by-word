@@ -1,0 +1,7 @@
+{
+  "appId": "app.wordbyword.kids",
+  "appName": "מילה אחרי מילה",
+  "webDir": "www",
+  "backgroundColor": "#fff8ec",
+  "android": { "allowMixedContent": false }
+}

@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#fff8ec">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>מילה אחרי מילה</title>
+<style>
+:root{--bg1:#fff8ec;--bg2:#e9f6f3;--ink:#1e293b;--muted:#475569;--p:#0f766e;--p2:#115e59;--amber:#b45309;--line:#d3dde4;--soft:#fdf0d8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{font-family:"Segoe UI",Roboto,"Noto Sans Hebrew","Arial Hebrew",Arial,sans-serif;font-size:20px;line-height:1.5;color:var(--ink);
+  background:linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+input{-webkit-user-select:text;user-select:text}
+#app{max-width:560px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px)}
+h1{font-size:40px;line-height:1.2;margin:8px 0;color:var(--p2)}
+.btn{font:inherit;font-weight:700;font-size:22px;min-height:60px;padding:12px 22px;border-radius:20px;border:0;background:var(--p);color:#fff;
+  box-shadow:0 4px 0 var(--p2);cursor:pointer;width:100%}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--p2)}
+.btn.alt{background:#fff;color:var(--p2);border:2px solid var(--p);box-shadow:none}
+.btn.warm{background:var(--amber);box-shadow:0 4px 0 #92400e}
+.btn.big{min-height:76px;font-size:28px}
+.btn[disabled]{opacity:.6}
+.btn.nudge{animation:glow 2.4s ease-in-out infinite}
+.link{background:none;border:0;font:inherit;font-size:18px;color:var(--muted);text-decoration:underline;padding:10px;min-height:48px;cursor:pointer}
+.row{display:flex;gap:12px}
+.row>*{flex:1}
+.home{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;position:relative}
+.hero{font-size:96px;animation:float 5s ease-in-out infinite}
+.sub{font-size:24px;margin:0 0 8px}
+.hintline{font-size:18px;color:var(--muted);margin:0}
+.gear{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 10px);left:10px;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.55);
+  font-size:22px;opacity:.55;cursor:pointer}
+.gear.holding{opacity:1;animation:ring 1.2s linear forwards}
+.top{display:flex;align-items:center;gap:8px;min-height:56px}
+.icon{font:inherit;font-size:26px;width:52px;height:52px;border-radius:16px;border:2px solid var(--line);background:#fff;cursor:pointer}
+.dots{flex:1;display:flex;justify-content:center;gap:10px;align-items:center;flex-wrap:wrap}
+.dot{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #9fb6bd}
+.dot.done{background:var(--p);border-color:var(--p)}
+.dot.cur{border-color:var(--amber);transform:scale(1.25)}
+.retrytag{font-size:18px;color:var(--p2);font-weight:700}
+.stage{flex:1;display:flex;flex-direction:column;gap:12px;padding-top:6px}
+.card{background:#fff;border-radius:28px;box-shadow:0 8px 28px rgba(15,60,70,.12);padding:18px 14px;text-align:center}
+.emoji{font-size:112px;line-height:1.15}
+.prompt{font-size:24px;font-weight:600;margin-top:2px}
+.word{font-size:58px;font-weight:800;color:var(--p2);line-height:1.6;padding-top:4px}
+.bubble{background:#fff;border:2px solid var(--line);border-radius:20px;padding:12px 16px;animation:rise .45s ease}
+.bubble small{display:block;color:var(--muted);font-size:16px;font-weight:700}
+.bubble.good{background:#ecfdf5;border-color:#6ee7b7}
+.bubble.q{background:var(--soft);border-color:#f3d9a4}
+.letter{font-size:64px;font-weight:800;color:var(--amber);line-height:1.1}
+.syl{display:flex;gap:10px;justify-content:center;margin:8px 0}
+.syl i{width:30px;height:30px;border-radius:50%;background:#d6e4e8;display:block;transition:all .25s}
+.syl i.pop{background:var(--amber);transform:scale(1.3)}
+.opts{display:grid;gap:10px}
+.opt{font:inherit;font-size:30px;font-weight:700;min-height:76px;line-height:1.5;border-radius:20px;border:3px solid var(--p);background:#fff;color:var(--p2);cursor:pointer}
+.opt.soft{opacity:.4;border-color:var(--line)}
+.typed{font:inherit;font-size:30px;text-align:center;width:100%;min-height:64px;border-radius:18px;border:3px solid var(--line);margin-bottom:10px;color:var(--ink);background:#fff}
+.typed:focus{outline:none;border-color:var(--p)}
+.msg{text-align:center;font-size:20px;color:var(--p2);font-weight:600;min-height:30px}
+.mini{font-size:36px;vertical-align:middle}
+.spk{font:inherit;font-size:20px;border:2px solid var(--p);background:#fff;color:var(--p2);border-radius:16px;padding:8px 16px;margin-top:6px;cursor:pointer;min-height:48px}
+.overlay{position:fixed;inset:0;background:rgba(20,40,50,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.overlay[hidden]{display:none}
+.sheet{background:#fffdf8;width:100%;max-width:560px;max-height:90vh;overflow:auto;border-radius:28px 28px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom) + 22px);animation:up .3s ease}
+.sheet h2{margin:0 0 6px;font-size:26px;color:var(--p2)}
+.sheet h3{font-size:19px;margin:20px 0 6px}
+.sheet label{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:19px;min-height:46px}
+.sheet input[type=checkbox],.sheet input[type=radio]{width:24px;height:24px;accent-color:var(--p);flex:none}
+.sheet input[type=text]{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border:2px solid var(--line);font-size:20px}
+.sheet input[type=range]{width:100%;accent-color:var(--p)}
+.sheet textarea,.sheet select{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border:2px solid var(--line);font-size:18px;background:#fff;color:var(--ink)}
+.sheet textarea{min-height:230px;line-height:1.45;user-select:text;-webkit-user-select:text}
+.lvl{display:flex;gap:6px;align-items:center;justify-content:center;font-size:18px;color:var(--muted);font-weight:600}
+.sent{font-size:30px;font-weight:700;line-height:1.5;margin:8px 4px 4px;color:var(--ink)}
+.blank{display:inline-block;min-width:3.2em;border-bottom:4px dotted var(--amber);color:var(--amber);text-align:center;margin:0 4px}
+.sentfull{font-size:26px;line-height:1.5;margin:10px 4px 4px}
+.sentfull mark{background:#d8f3ee;color:var(--p2);font-weight:800;border-radius:8px;padding:0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}
+.chip{background:var(--soft);border:2px solid #f3d9a4;border-radius:14px;padding:4px 12px;font-size:20px;font-weight:600}
+.lvlpick{display:flex;align-items:center;gap:10px;width:100%;max-width:360px}
+.lvmid{flex:1;min-width:0;text-align:center}
+.lvname{font-size:20px;font-weight:700;color:var(--p2);margin-top:4px}
+.lvemo{font-size:22px;line-height:1.4;min-height:32px;white-space:nowrap}
+.lvbtn{flex:none;width:60px;height:60px;border-radius:20px;border:3px solid var(--p);background:#fff;color:var(--p2);font:inherit;font-size:34px;font-weight:700;cursor:pointer;line-height:1}
+.lvbtn[disabled]{opacity:.3;cursor:default}
+.ld{width:12px;height:12px;border-radius:50%;border:2px solid #9fb6bd;background:#fff;display:block}
+.ld.on{background:var(--p);border-color:var(--p)}
+.lvl span{margin-inline-start:6px}
+.sheet .lvgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.sheet details{margin-top:8px}
+.sheet summary{font-size:18px;color:var(--p2);font-weight:700;min-height:44px;display:flex;align-items:center;cursor:pointer}
+.sheet .ltr{direction:ltr;text-align:left}
+.sheet .sendrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.sheet .sendrow .btn{font-size:19px;min-height:54px;padding:8px 10px}
+.note{font-size:16px;color:var(--muted);margin:2px 0 0}
+.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.tool{font:inherit;border:2px solid var(--line);background:#fff;border-radius:20px;padding:14px 8px;font-size:18px;font-weight:700;cursor:pointer;min-height:104px;color:var(--ink)}
+.tool span{display:block;font-size:38px}
+.tool.on{border-color:var(--p);background:#ecfdf5}
+.tooltip{background:var(--soft);border-radius:18px;padding:12px 16px;font-size:20px;min-height:64px;text-align:center}
+.stat{display:inline-block;background:#fff;border:2px solid var(--line);border-radius:14px;padding:4px 12px;margin:4px 4px 0 0;font-size:18px}
+.celebrate{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:14px}
+.stars{font-size:44px;letter-spacing:4px}
+.practiced{font-size:38px;line-height:1.5}
+.conf{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.conf span{position:absolute;top:-8vh;font-size:28px;animation:fall linear forwards}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes glow{0%,100%{box-shadow:0 4px 0 #92400e,0 0 0 0 rgba(180,83,9,0)}50%{box-shadow:0 4px 0 #92400e,0 0 0 10px rgba(180,83,9,.2)}}
+@keyframes ring{from{box-shadow:0 0 0 0 rgba(15,118,110,.55)}to{box-shadow:0 0 0 22px rgba(15,118,110,0)}}
+@keyframes fall{to{transform:translateY(112vh) translateX(var(--dx,0)) rotate(260deg);opacity:.9}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.conf{display:none}}
+@media (max-height:640px){.emoji{font-size:80px}.word{font-size:46px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="overlay" id="drawer" hidden></div>
+<div class="overlay" id="sheet" hidden></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- נתונים ---------- */
+var CATS={
+  animals:{name:"חיות",icon:"🐾"},
+  food:{name:"אוכל ושתייה",icon:"🍎"},
+  kitchen:{name:"במטבח",icon:"🍴"},
+  clothes:{name:"בגדים",icon:"👕"},
+  actions:{name:"פעולות",icon:"🏃"},
+  home:{name:"בבית ובחפצים",icon:"🏠"},
+  outside:{name:"בחוץ ותחבורה",icon:"🌤️"}
+};
+/* [מילה, אמוג'י, קטגוריה, רמה(1-3), הברות, רמז משמעות, רמז קטגוריה/תפקוד/מקום, פעולה?] */
+var RAW=[
+["דג","🐟","animals",1,1,"חיה שחיה במים ויש לה סנפירים","גרה בים, בנהר או באקווריום"],
+["כלב","🐶","animals",1,1,"חיה שנובחת ובאה אלינו בשמחה","חבר טוב שגר איתנו בבית ואוהב טיולים"],
+["סוס","🐴","animals",1,1,"חיה גדולה שרצה מהר","אפשר לרכוב עליו ויש לו רעמה"],
+["פיל","🐘","animals",1,1,"חיה ענקית עם אוזניים גדולות","יש לו חדק ארוך והוא גר בסוואנה"],
+["צב","🐢","animals",1,1,"חיה שהולכת לאט לאט","יש לו בית קשיח על הגב"],
+["קוף","🐒","animals",1,1,"חיה שמטפסת על עצים ואוכלת בננות","מקפצת ביער הגשם או בגן החיות"],
+["נחש","🐍","animals",2,2,"חיה ארוכה בלי רגליים שזוחלת","אומרת ששש ויש לה לשון מפוצלת"],
+["פרה","🐄","animals",2,2,"חיה גדולה שאומרת מו","גרה בחווה ונותנת לנו חלב"],
+["חתול","🐱","animals",3,2,"חיה רכה ופרוותית שאומרת מיאו","אוהב חלב ומתכרבל על הספה"],
+["ארנב","🐰","animals",4,2,"חיה עם אוזניים ארוכות שקופצת","אוהב לאכול גזר"],
+["ציפור","🐦","animals",4,2,"חיה קטנה שמצייצת ועפה","גרה בקן על העץ"],
+["פרפר","🦋","animals",5,2,"חרק צבעוני עם כנפיים יפות","היה פעם זחל קטן ועף בין הפרחים"],
+["תנין","🐊","animals",6,2,"חיה ארוכה עם הרבה שיניים ששוחה בנהר","ירוק ושוכב ליד המים, והוא מסוכן"],
+["אריה","🦁","animals",7,3,"חיה גדולה ואמיצה שנקראת מלך החיות","יש לו רעמה גדולה והוא שואג"],
+["דבורה","🐝","animals",7,3,"חרק קטן שעושה זזזז","מכינה דבש וגרה בכוורת"],
+["תמנון","🐙","animals",7,2,"חיה בים עם שמונה זרועות ארוכות","גרה בקרקעית הים והיא חכמה מאוד"],
+["דולפין","🐬","animals",8,2,"חיה חכמה ונחמדה שקופצת מהמים","גרה בים ושוחה ליד ספינות"],
+["נמלה","🐜","animals",8,3,"חרק קטן וחרוץ שסוחב אוכל","גרה בקן באדמה יחד עם הרבה חברות"],
+["קנגורו","🦘","animals",9,3,"חיה שקופצת ויש לה כיס בבטן","גרה באוסטרליה ומקפצת רחוק"],
+["דינוזאור","🦖","animals",10,4,"חיה ענקית מלפני הרבה מאוד שנים","כבר לא קיימת, ורואים את העצמות שלה במוזיאון"],
+["פינגווין","🐧","animals",10,3,"ציפור שלא עפה אבל שוחה מצוין","גרה בקור, בשלג ובקרח"],
+["תות","🍓","food",1,1,"פרי קטן ואדום ומתוק","יש לו נקודות קטנות ועלים ירוקים למעלה"],
+["גזר","🥕","food",2,2,"ירק כתום וקצת פריך","ארנבים אוהבים אותו"],
+["חלב","🥛","food",2,2,"משקה לבן שבא מהפרה","שותים אותו בכוס, לפעמים עם דגני בוקר"],
+["לחם","🍞","food",2,2,"אוכלים אותו בבוקר עם ממרח","אופים אותו ועושים ממנו כריך"],
+["ביצה","🥚","food",3,2,"יש לה קליפה ומתוכה אפשר להכין חביתה","התרנגולת מטילה אותה"],
+["לימון","🍋","food",4,2,"פרי צהוב וחמוץ מאוד","סוחטים אותו לתוך תה או לימונדה"],
+["מים","💧","food",4,2,"שותים אותם כשצמאים","יורדים מהברז ונשפכים לכוס"],
+["עוגה","🎂","food",4,2,"דבר מתוק וטעים שאופים בתנור","אוכלים אותה ביום הולדת"],
+["פיצה","🍕","food",4,2,"אוכל עגול עם גבינה מומסת","חותכים אותה למשולשים"],
+["תפוז","🍊","food",4,2,"פרי עגול וכתום עם הרבה מיץ","מקלפים אותו ושותים ממנו מיץ"],
+["בננה","🍌","food",5,3,"פרי צהוב וארוך","מקלפים אותו לפני שאוכלים"],
+["אבטיח","🍉","food",6,3,"פרי גדול של הקיץ","ירוק מבחוץ ואדום מבפנים עם גרעינים שחורים"],
+["גלידה","🍦","food",7,3,"דבר מתוק וקר שאוכלים בקיץ","אוכלים אותה בגביע והיא נמסה מהר"],
+["ענבים","🍇","food",7,3,"פירות קטנים שגדלים באשכול","יכולים להיות ירוקים או סגולים"],
+["שוקולד","🍫","food",7,3,"דבר מתוק וחום שנמס ביד","קונים אותו בחפיסה או בחטיף"],
+["אננס","🍍","food",8,3,"פרי טרופי עם קוצים ועלים למעלה","הוא צהוב בפנים, מתוק וקצת חמוץ"],
+["פופקורן","🍿","food",8,2,"חטיף שמתפוצץ בסיר חם","אוכלים אותו בקולנוע"],
+["מלפפון","🥒","food",9,3,"ירק ירוק וארוך ופריך","שמים אותו בסלט, ולפעמים הוא הופך לחמוץ"],
+["נקניקייה","🌭","food",10,4,"אוכל ארוך ורך ששמים בלחמנייה","אוכלים אותה בגריל או בפיקניק"],
+["עגבנייה","🍅","food",10,4,"ירק אדום ועגול ועסיסי","שמים אותה בסלט ועושים ממנה גם רוטב"],
+["כוס","🥤","kitchen",1,1,"שותים ממנה","שמים בה מים או מיץ"],
+["כף","🥄","kitchen",1,1,"משתמשים בה כדי לאכול מרק","כלי אוכל עגול וקעור"],
+["סיר","🍲","kitchen",1,1,"מבשלים בו מרק","יש לו מכסה והוא עומד על האש"],
+["סכין","🔪","kitchen",4,2,"כלי חד שחותכים איתו","משתמשים בו רק עם מבוגר, כדי לחתוך ירקות"],
+["מחבת","🍳","kitchen",5,2,"מטגנים בה ביצה","כלי עם ידית שעומד על הכיריים"],
+["קומקום","🫖","kitchen",6,2,"מרתיחים בו מים לתה","עומד במטבח ויוצא ממנו קיטור"],
+["מזלג","🍴","kitchen",7,2,"כלי שדוקרים איתו אוכל","יש לו כמה שיניים והוא מונח על השולחן"],
+["צלחת","🍽️","kitchen",8,3,"שמים עליה את האוכל","עגולה ומונחת על השולחן"],
+["קערה","🥣","kitchen",9,3,"שמים בה מרק או דגני בוקר","עמוקה ועגולה"],
+["גרב","🧦","clothes",2,2,"משהו רך שמחמם את כף הרגל","לובשים אותה לפני הנעל"],
+["נעל","👟","clothes",2,2,"לובשים אותה כדי ללכת בחוץ","משהו שמים על הרגליים וקושרים לו שרוכים"],
+["כובע","🧢","clothes",3,2,"מגן עלינו מהשמש","שמים אותו על הראש"],
+["חולצה","👕","clothes",5,2,"לובשים אותה על החלק העליון של הגוף","יש לה שרוולים וצווארון"],
+["מעיל","🧥","clothes",5,2,"מחמם כשקר בחוץ","לובשים אותו מעל הבגדים בחורף"],
+["שמלה","👗","clothes",5,2,"בגד יפה שלובשות בחג","בגד אחד ארוך שמגיע עד הברכיים"],
+["צעיף","🧣","clothes",6,2,"פס ארוך שמחמם את הצוואר","כורכים אותו סביב הצוואר בחורף"],
+["טבעת","💍","clothes",8,3,"תכשיט עגול ששמים על האצבע","יכולה להיות מזהב או מכסף"],
+["כפפה","🧤","clothes",8,3,"מחממת לנו את היד","לובשים אותה בחורף על הידיים"],
+["עניבה","👔","clothes",8,3,"פס מחוכם שמבוגרים קושרים על החולצה","לובשים אותה באירוע חגיגי או בעבודה"],
+["מגפיים","👢","clothes",9,3,"נעליים גבוהות שמגינות מפני בוץ","לובשים אותם כשיורד גשם וקופצים בשלוליות"],
+["מטרייה","☂️","clothes",9,3,"משתמשים בה כשיורד גשם","פותחים אותה מעל הראש"],
+["מכנסיים","👖","clothes",10,4,"לובשים אותם על החלק התחתון של הגוף","יש להם שתי רגליים ולפעמים כיסים"],
+["משקפיים","👓","clothes",10,4,"עוזרים לראות טוב יותר","שמים אותם על האף ויש להם שתי זרועות"],
+["לרוץ","🏃","actions",4,2,"זזים מהר מאוד עם הרגליים","עושים את זה במשחק תופסת ובתחרות",1],
+["לשיר","🎤","actions",4,2,"מוציאים מהפה מנגינה עם מילים","עושים את זה עם מיקרופון או בשיעור מוזיקה",1],
+["לישון","😴","actions",5,2,"עוצמים עיניים בלילה","עושים את זה במיטה עם כרית ושמיכה",1],
+["לבכות","😢","actions",6,2,"יורדות דמעות מהעיניים","לפעמים מרגישים עצב או שמשהו כואב",1],
+["לכתוב","✍️","actions",6,2,"מסמנים אותיות על דף","עושים את זה עם עט או עיפרון",1],
+["לצחוק","😂","actions",6,2,"מרגישים שמחה וקול יוצא מהפה: חה חה","עושים את זה כשמשהו מצחיק",1],
+["לקפוץ","🤸","actions",6,2,"מרימים את הגוף באוויר ונוחתים","עושים את זה על טרמפולינה או עם חבל",1],
+["לקרוא","📖","actions",6,2,"מסתכלים על אותיות ומבינים מה כתוב","עושים את זה עם ספר",1],
+["לרקוד","💃","actions",6,2,"זזים לפי המוזיקה","עושים את זה במסיבה בשמחה",1],
+["לשחות","🏊","actions",6,2,"זזים בתוך המים בלי ללכת","עושים את זה בים או בבריכה",1],
+["לשתות","🧃","actions",6,2,"עושים את זה כשצמאים","מרימים כוס או קשית ובולעים",1],
+["לחשוב","🤔","actions",7,3,"המוח עובד כדי לפתור בעיה","מניחים אצבע על הסנטר ומהרהרים",1],
+["לנשוף","💨","actions",8,2,"מוציאים אוויר חזק מהפה","עושים את זה על נרות ביום הולדת",1],
+["לצייר","🎨","actions",8,3,"יוצרים תמונה בצבעים","עושים את זה עם עפרונות או מכחול",1],
+["לחפור","⛏️","actions",9,3,"מוציאים אדמה מתוך האדמה","עושים את זה בחול עם יד או כלי",1],
+["לטפס","🧗","actions",9,3,"עולים למעלה עם הידיים והרגליים","עושים את זה על קיר או על עץ",1],
+["לפהק","🥱","actions",9,3,"פותחים את הפה גדול כשעייפים","עושים את זה לפני השינה",1],
+["לתפור","🧵","actions",9,3,"מחברים בד עם מחט וחוט","עושים את זה כשצריך לתקן בגד",1],
+["לדגדג","😆","actions",10,3,"נוגעים בעדינות ומישהו מתפקע מצחוק","עושים את זה בבטן או בכפות הרגליים",1],
+["להתלבש","👚","actions",10,4,"שמים בגדים על הגוף","עושים את זה בבוקר לפני הגן או בית הספר",1],
+["להתעטש","🤧","actions",10,4,"פתאום האף משמיע קול חזק","קורה כשיש נזלת או אבק",1],
+["בית","🏠","home",1,1,"המקום שבו גרים","יש בו חדרים, דלת וגג"],
+["תוף","🥁","home",1,1,"כלי נגינה שמכים בו עם מקלות","עושה בום בום בתזמורת"],
+["דלת","🚪","home",2,2,"פותחים אותה כדי להיכנס","יש לה ידית ולפעמים פעמון"],
+["ספר","📚","home",2,2,"יש בו דפים עם סיפורים ותמונות","קוראים בו לפני השינה"],
+["פנס","🔦","home",2,2,"מאיר בחושך","מדליקים אותו כשצריך לראות בלילה"],
+["תיק","🎒","home",2,1,"נושאים בו ספרים ואוכל לבית הספר","שמים אותו על הגב"],
+["בלון","🎈","home",3,2,"מנפחים אותו והוא עף למעלה","מקשטים איתו ביום הולדת"],
+["דובי","🧸","home",3,2,"צעצוע רך שמחבקים לפני השינה","יש לו פרווה ועיניים קטנות"],
+["כדור","⚽","home",3,2,"עגול ומשחקים בו","בועטים בו או זורקים אותו"],
+["כיסא","🪑","home",3,2,"מתיישבים עליו","עומד ליד שולחן ויש לו ארבע רגליים"],
+["מיטה","🛏️","home",3,2,"ישנים עליה בלילה","יש עליה כרית ושמיכה"],
+["מחשב","💻","home",4,2,"מסך עם מקלדת שעובדים ומשחקים בו","שמים אותו על שולחן או על הברכיים"],
+["פטיש","🔨","home",4,2,"כלי כבד שמכים בו על מסמר","הנגר משתמש בו, והוא עושה בום"],
+["שעון","⏰","home",4,2,"מראה לנו מה השעה","יש לו מחוגים ולפעמים הוא מצלצל בבוקר"],
+["מתנה","🎁","home",5,3,"נותנים אותה ביום הולדת","עטופה בנייר צבעוני עם סרט"],
+["טלפון","📱","home",6,3,"מדברים איתו עם אנשים רחוקים","אפשר לצלצל בו או לשלוח הודעה"],
+["כינור","🎻","home",7,2,"כלי נגינה עם מיתרים ועם קשת","מנגנים בו כשמניחים אותו על הכתף"],
+["מצלמה","📷","home",7,3,"מצלמים איתה תמונות","לוחצים על כפתור והיא עושה קליק"],
+["מפתח","🔑","home",8,3,"פותחים איתו דלת נעולה","קטן ומתכתי, ושמים אותו במנעול"],
+["אמבטיה","🛁","home",9,3,"מתרחצים בתוכה במים וקצף","נמצאת בחדר הרחצה"],
+["מספריים","✂️","home",9,3,"גוזרים איתם נייר","יש להם שתי להבים שנפתחות ונסגרות"],
+["מקלדת","⌨️","home",9,3,"יש עליה הרבה כפתורים עם אותיות","מקלידים עליה ליד המחשב"],
+["עפיפון","🪁","home",9,3,"עף גבוה באוויר כשיש רוח","מחזיקים אותו בחוט ארוך"],
+["פסנתר","🎹","home",10,3,"כלי נגינה גדול עם קלידים שחורים ולבנים","לוחצים על הקלידים והוא משמיע צלילים"],
+["גשם","🌧️","outside",1,1,"טיפות שיורדות מהעננים","בחורף הרצפה נרטבת ממנו"],
+["עץ","🌳","outside",1,1,"גדל בגינה והוא גבוה","יש לו גזע, ענפים ועלים"],
+["ירח","🌙","outside",2,2,"מאיר בלילה כמו חצי עיגול","רואים אותו בשמיים ליד הכוכבים"],
+["ענן","☁️","outside",2,2,"לבן ורך ומרחף בשמיים","ממנו יורד גשם"],
+["כוכב","⭐","outside",3,2,"נקודה קטנה שמנצנצת","רואים אותם בשמיים בלילה"],
+["מטוס","✈️","outside",3,2,"עף גבוה בשמיים","נוסעים בו רחוק, ממריא משדה תעופה"],
+["סירה","⛵","outside",3,2,"כלי קטן עם מפרש שצף על המים","שטה בים או באגם"],
+["פרח","🌸","outside",3,2,"גדל בגינה ויש לו ריח טוב","צבעוני, ודבורים אוהבות אותו"],
+["שמש","☀️","outside",3,2,"מאירה את השמיים ביום","צהובה, חמה ונמצאת למעלה"],
+["אוהל","⛺","outside",5,2,"בית קטן מבד שישנים בו בטיול","מקימים אותו בקמפינג"],
+["ברק","⚡","outside",5,2,"אור חזק ומהיר בשמיים בזמן סערה","בא לפני הרעם"],
+["גשר","🌉","outside",5,2,"עוברים עליו מעל נהר או כביש","בנוי מבטון ומתכת ויש עליו מכוניות"],
+["טירה","🏰","outside",5,2,"בית ענק של מלכים עם מגדלים","בסיפורים גרים בה מלך ומלכה"],
+["רכבת","🚆","outside",5,3,"נוסעת על פסים ויש לה הרבה קרונות","נוסעים בה מתחנה לתחנה"],
+["מסוק","🚁","outside",6,2,"כלי טיס עם להבים שמסתובבות למעלה","עף במקום ונוחת בלי מסלול"],
+["אוטובוס","🚌","outside",7,3,"נוסעים בו הרבה אנשים ביחד","עוצר בתחנה ויש בו נהג"],
+["ספינה","🚢","outside",7,3,"כלי גדול ששט בים","נוסעת על המים ויש בה הרבה אנשים"],
+["רמזור","🚦","outside",7,2,"יש לו אור אדום, כתום וירוק","עומד בצומת ואומר מתי לחצות"],
+["חללית","🚀","outside",8,3,"עפה אל הכוכבים","יוצאת לחלל ובתוכה אסטרונאוט"],
+["מכונית","🚗","outside",8,3,"נוסעים בה בכביש","יש לה ארבעה גלגלים והגה"],
+["אופניים","🚲","outside",10,4,"רוכבים עליהם ודוושים","יש להם שני גלגלים"],
+["אמבולנס","🚑","outside",10,3,"רכב עם סירנה שמביא רופאים","נוסע מהר כשמישהו צריך עזרה"],
+["טרקטור","🚜","outside",10,3,"רכב גדול עם גלגלים ענקיים","עובד בשדה של החקלאי"]
+];
+/* רמות 1-10 לפי ציון מורכבות: הברות, אורך, צירופי עיצורים (שווא), צורת רבים, פועל, ושכיחות נמוכה. הרמות חולקות את המילים לעשירונים. */
+var LEVEL_INFO=["מילים קצרות מאוד, בדרך כלל הברה אחת, מהעולם הקרוב", "מילים קצרות ומוכרות מהבית ומהחיים היומיומיים", "חפצים, בעלי חיים ומאכלים יומיומיים", "מילים יומיומיות בנות שתי הברות, ופעולה פשוטה", "מילים שגורות מעט ארוכות יותר", "פעולות יומיומיות ועוד כלים וחפצים", "מילים בנות שלוש הברות ופעולות", "מילים מגוונות יותר מעולמות שונים", "מילים ארוכות או פחות שגורות", "מילים ארוכות ומאתגרות במיוחד"];
+var WORDS=RAW.map(function(r){return {w:r[0],e:r[1],cat:r[2],lvl:r[3],syl:r[4],h1:r[5],h2:r[6],act:!!r[7]}});
+
+/*NIKUD_START*/
+var NIKUD={"דג": "דָּג", "כלב": "כֶּלֶב", "חתול": "חָתוּל", "פרה": "פָּרָה", "פיל": "פִּיל", "ציפור": "צִיפּוֹר", "ארנב": "אַרְנָב", "צב": "צָב", "אריה": "אַרְיֵה", "פרפר": "פַּרְפַּר", "דבורה": "דְּבוֹרָה", "סוס": "סוּס", "בננה": "בָּנָנָה", "עוגה": "עוּגָה", "גזר": "גֶּזֶר", "חלב": "חָלָב", "ביצה": "בֵּיצָה", "לחם": "לֶחֶם", "פיצה": "פִּיצָה", "תות": "תּוּת", "ענבים": "עֲנָבִים", "מים": "מַיִם", "אבטיח": "אֲבַטִּיחַ", "כף": "כַּף", "מזלג": "מַזְלֵג", "כוס": "כּוֹס", "צלחת": "צַלַּחַת", "קערה": "קְעָרָה", "מחבת": "מַחֲבַת", "סיר": "סִיר", "נעל": "נַעַל", "גרב": "גֶּרֶב", "כובע": "כּוֹבַע", "חולצה": "חוּלְצָה", "שמלה": "שִׂמְלָה", "מעיל": "מְעִיל", "מטרייה": "מִטְרִיָּיה", "מכנסיים": "מִכְנָסַיִים", "משקפיים": "מִשְׁקָפַיִים", "לרוץ": "לָרוּץ", "לישון": "לִישׁוֹן", "לשתות": "לִשְׁתּוֹת", "לשחות": "לִשְׂחוֹת", "לרקוד": "לִרְקוֹד", "לשיר": "לָשִׁיר", "לקרוא": "לִקְרוֹא", "לצייר": "לְצַיֵּיר", "לקפוץ": "לִקְפּוֹץ", "לצחוק": "לִצְחוֹק", "לבכות": "לִבְכּוֹת", "לכתוב": "לִכְתּוֹב", "מיטה": "מִיטָּה", "כיסא": "כִּיסֵּא", "שעון": "שָׁעוֹן", "בית": "בַּיִת", "כדור": "כַּדּוּר", "בלון": "בָּלוֹן", "דלת": "דֶּלֶת", "טלפון": "טֶלֶפוֹן", "ספר": "סֵפֶר", "שמש": "שֶׁמֶשׁ", "כוכב": "כּוֹכָב", "עץ": "עֵץ", "פרח": "פֶּרַח", "מכונית": "מְכוֹנִית", "אוטובוס": "אוֹטוֹבּוּס", "מטוס": "מָטוֹס", "אופניים": "אוֹפַנַּיִים", "גשם": "גֶּשֶׁם", "תנין": "תַּנִּין", "קוף": "קוֹף", "נחש": "נָחָשׁ", "דולפין": "דּוֹלְפִין", "תמנון": "תַּמְנוּן", "פינגווין": "פִּינְגְּווִין", "קנגורו": "קַנְגּוּרוּ", "נמלה": "נְמָלָה", "דינוזאור": "דִּינוֹזָאוּר", "לימון": "לִימוֹן", "תפוז": "תַּפּוּז", "שוקולד": "שׁוֹקוֹלָד", "גלידה": "גְּלִידָה", "מלפפון": "מְלָפְפוֹן", "עגבנייה": "עַגְבָנִיָּיה", "אננס": "אָנָנָס", "פופקורן": "פּוֹפְּקוֹרְן", "נקניקייה": "נַקְנִיקִיָּיה", "סכין": "סַכִּין", "קומקום": "קוּמְקוּם", "כפפה": "כְּפָפָה", "צעיף": "צָעִיף", "עניבה": "עֲנִיבָה", "טבעת": "טַבַּעַת", "מגפיים": "מַגָּפַיִים", "מפתח": "מַפְתֵּחַ", "מצלמה": "מַצְלֵמָה", "פנס": "פָּנָס", "מחשב": "מַחְשֵׁב", "מקלדת": "מִקְלֶדֶת", "פטיש": "פַּטִּישׁ", "מספריים": "מִסְפָּרַיִים", "תיק": "תִּיק", "מתנה": "מַתָּנָה", "תוף": "תּוֹף", "כינור": "כִּינּוֹר", "פסנתר": "פְּסַנְתֵּר", "אמבטיה": "אַמְבַּטְיָה", "עפיפון": "עֲפִיפוֹן", "דובי": "דּוּבִּי", "ענן": "עָנָן", "ברק": "בָּרָק", "גשר": "גֶּשֶׁר", "רמזור": "רַמְזוֹר", "מסוק": "מַסּוֹק", "רכבת": "רַכֶּבֶת", "ספינה": "סְפִינָה", "טרקטור": "טְרַקְטוֹר", "אמבולנס": "אַמְבּוּלַנְס", "חללית": "חֲלָלִית", "אוהל": "אוֹהֶל", "ירח": "יָרֵחַ", "טירה": "טִירָה", "סירה": "סִירָה", "לטפס": "לְטַפֵּס", "לחפור": "לַחְפּוֹר", "לתפור": "לִתְפּוֹר", "לנשוף": "לִנְשׁוֹף", "להתעטש": "לְהִתְעַטֵּשׁ", "לפהק": "לְפַהֵק", "להתלבש": "לְהִתְלַבֵּשׁ", "לחשוב": "לַחֲשׁוֹב", "לדגדג": "לְדַגְדֵּג"};
+/*NIKUD_END*/
+function nk(w){return NIKUD[w]||w}
+/*SENT_START*/
+var SENT={"דג": "[הדג] שוחה בתוך האקווריום", "כלב": "[הכלב] נובח כשמישהו מגיע", "חתול": "[החתול] מיילל ומתכרבל על הספה", "פרה": "[הפרה] אוכלת עשב ונותנת חלב", "פיל": "[לפיל] יש חדק ארוך ואוזניים גדולות", "ציפור": "[הציפור] עפה ומצייצת על העץ", "ארנב": "[הארנב] קופץ ואוכל גזר", "צב": "[הצב] הולך לאט עם הבית שלו על הגב", "אריה": "[האריה] שואג והוא מלך החיות", "פרפר": "[הפרפר] עף בין הפרחים", "דבורה": "[הדבורה] מכינה דבש בכוורת", "סוס": "אפשר לרכוב על [סוס] בחווה", "תנין": "[התנין] שוכב ליד הנהר עם פה גדול", "קוף": "[הקוף] מטפס על העץ ואוכל בננה", "נחש": "[הנחש] זוחל על האדמה בלי רגליים", "דולפין": "[הדולפין] קופץ מעל הגלים בים", "תמנון": "[לתמנון] יש שמונה זרועות בים", "פינגווין": "[הפינגווין] הולך על הקרח ושוחה", "קנגורו": "[הקנגורו] קופץ ויש לו כיס בבטן", "נמלה": "[הנמלה] הקטנה סוחבת אוכל לקן", "דינוזאור": "[הדינוזאור] היה ענק וחי לפני הרבה שנים", "בננה": "קולפים [בננה] לפני שאוכלים אותה", "עוגה": "אופים [עוגה] ליום הולדת", "גזר": "[הגזר] הכתום פריך וטעים", "חלב": "שותים [חלב] עם דגני בוקר", "ביצה": "מכינים חביתה [מביצה] אחת", "לחם": "שמים גבינה על פרוסת [לחם]", "פיצה": "אוכלים [פיצה] עם גבינה ועגבנייה", "תות": "[התות] האדום קטן ומתוק", "ענבים": "[הענבים] גדלים באשכול גדול", "מים": "שותים [מים] כשצמאים", "אבטיח": "אוכלים [אבטיח] קר בקיץ", "לימון": "[לימון] הוא חמוץ מאוד", "תפוז": "סוחטים [תפוז] ומכינים מיץ", "שוקולד": "[שוקולד] הוא חום ונמס ביד", "גלידה": "אוכלים [גלידה] בגביע בקיץ", "מלפפון": "חותכים [מלפפון] לתוך הסלט", "עגבנייה": "[העגבנייה] אדומה ועסיסית", "אננס": "[לאננס] יש עלים קוצניים למעלה", "פופקורן": "אוכלים [פופקורן] בקולנוע", "נקניקייה": "שמים [נקניקייה] בתוך לחמנייה", "כף": "אוכלים מרק עם [כף]", "מזלג": "אוכלים פסטה עם [מזלג]", "כוס": "שמים מים [בכוס]", "צלחת": "שמים את האוכל על [הצלחת]", "קערה": "שמים דגני בוקר [בקערה]", "מחבת": "מטגנים חביתה [במחבת]", "סיר": "מבשלים מרק [בסיר] גדול", "סכין": "חותכים לחם [בסכין] חדה", "קומקום": "מרתיחים מים [בקומקום] לתה", "נעל": "קושרים שרוכים [לנעל]", "גרב": "לובשים [גרב] לפני הנעל", "כובע": "שמים [כובע] על הראש נגד השמש", "חולצה": "לובשים [חולצה] עם שרוולים", "שמלה": "היא לובשת [שמלה] יפה לחג", "מעיל": "קר בחוץ, אז לובשים [מעיל]", "מטרייה": "פותחים [מטרייה] כשיורד גשם", "מכנסיים": "[המכנסיים] שלי ארוכים ויש להם כיסים", "משקפיים": "[משקפיים] עוזרים לראות טוב", "כפפה": "שמים [כפפה] על היד בחורף", "צעיף": "כורכים [צעיף] סביב הצוואר בחורף", "עניבה": "אבא קושר [עניבה] לחתונה", "טבעת": "שמים [טבעת] על האצבע", "מגפיים": "נועלים [מגפיים] כדי לקפוץ בשלוליות", "לרוץ": "כיף [לרוץ] מהר בפארק", "לישון": "בלילה הולכים [לישון] במיטה", "לשתות": "כשצמאים צריך [לשתות] מים", "לשחות": "אוהבים [לשחות] בבריכה", "לרקוד": "כיף [לרקוד] במסיבה", "לשיר": "אוהבים [לשיר] יחד במקהלה", "לקרוא": "לפני השינה אוהבים [לקרוא] ספר", "לצייר": "מחזיקים עפרון כדי [לצייר] תמונה", "לקפוץ": "על טרמפולינה אפשר [לקפוץ] גבוה", "לצחוק": "כשמשהו מצחיק אפשר [לצחוק] בקול", "לבכות": "כשעצובים לפעמים אפשר [לבכות]", "לכתוב": "מחזיקים עט כדי [לכתוב] מילים", "לטפס": "אפשר [לטפס] על עץ או על קיר", "לחפור": "בחול אפשר [לחפור] בור עמוק", "לתפור": "עם מחט וחוט אפשר [לתפור] כפתור", "לנשוף": "מבקשים משאלה [ולנשוף] על הנרות", "להתעטש": "כשיש אבק אפשר [להתעטש] בקול", "לפהק": "כשעייפים פותחים פה גדול כדי [לפהק]", "להתלבש": "בבוקר צריך [להתלבש] לפני הגן", "לחשוב": "לפני שעונים כדאי [לחשוב] קצת", "לדגדג": "אפשר [לדגדג] בבטן ולהצחיק", "מיטה": "ישנים בלילה על [המיטה]", "כיסא": "מתיישבים על [הכיסא] ליד השולחן", "שעון": "[השעון] מראה מה השעה", "בית": "גרים [בבית] עם חדרים וגג", "כדור": "בועטים [בכדור] במגרש", "בלון": "[הבלון] עף למעלה כשמשחררים אותו", "דלת": "פותחים [דלת] כדי להיכנס", "טלפון": "מתקשרים לסבתא [בטלפון]", "ספר": "קוראים [ספר] עם סיפור יפה", "מפתח": "פותחים את הדלת עם [מפתח]", "מצלמה": "מצלמים תמונה עם [מצלמה]", "פנס": "מדליקים [פנס] כשחשוך", "מחשב": "כותבים ומשחקים על [המחשב]", "מקלדת": "מקלידים אותיות על [המקלדת]", "פטיש": "הנגר מכה עם [פטיש] על מסמר", "מספריים": "גוזרים נייר עם [מספריים]", "תיק": "שמים ספרים [בתיק] ונושאים על הגב", "מתנה": "נותנים [מתנה] ליום הולדת", "תוף": "מכים [בתוף] עם מקלות", "כינור": "מנגנים על [כינור] עם קשת", "פסנתר": "לוחצים על הקלידים של [הפסנתר]", "אמבטיה": "מתרחצים עם קצף [באמבטיה]", "עפיפון": "[העפיפון] עף גבוה ברוח", "דובי": "מחבקים [דובי] לפני השינה", "שמש": "[השמש] מאירה ומחממת ביום", "כוכב": "[הכוכב] מנצנץ בשמיים בלילה", "עץ": "[לעץ] יש גזע, ענפים ועלים", "פרח": "[הפרח] הצבעוני גדל בגינה", "מכונית": "נוסעים [במכונית] בכביש", "אוטובוס": "נוסעים [באוטובוס] עד התחנה", "מטוס": "[המטוס] ממריא ועף בשמיים", "אופניים": "דוושים על [אופניים] עם שני גלגלים", "גשם": "בחורף יורד [גשם] מהעננים", "ענן": "[הענן] הלבן מרחף בשמיים", "ברק": "[הברק] מאיר את השמיים בסערה", "גשר": "עוברים על [גשר] מעל הנהר", "רמזור": "[הרמזור] אדום, אז עוצרים", "מסוק": "[המסוק] עף עם להבים למעלה", "רכבת": "[הרכבת] נוסעת על פסים", "ספינה": "[הספינה] שטה בים", "טרקטור": "החקלאי נוסע [בטרקטור] בשדה", "אמבולנס": "[האמבולנס] נוסע מהר עם סירנה", "חללית": "[החללית] עפה אל החלל", "אוהל": "ישנים [באוהל] בטיול", "ירח": "[הירח] מאיר בלילה", "טירה": "המלך גר [בטירה] גדולה", "סירה": "שטים [בסירה] באגם"};
+/*SENT_END*/
+function sentOf(w){return SENT[w.w]||w.sent||""}
+function sentParts(w){var m=sentOf(w).match(/^(.*)\[([^\]]+)\](.*)$/);return m?{a:m[1],t:m[2],b:m[3]}:null}
+function sentBlank(w){var p=sentParts(w);return p?esc(p.a)+'<span class="blank">▁▁▁▁</span>'+esc(p.b):""}
+function sentFull(w){var p=sentParts(w);return p?esc(p.a)+'<mark>'+esc(p.t)+'</mark>'+esc(p.b):""}
+var DEFAULTS={name:"",perRound:6,levels:[1,2,3],levelMode:"auto",level:1,allowPick:true,sentNoPic:false,v:2,cats:Object.keys(CATS),mode:"say",hints:[1,2,3,4],hintOrder:"sem",custom:[],
+  speakHints:true,speakWord:true,sounds:true,nudge:false,email:"",phone:"",shareName:false};
+
+var PRAISE_GOOD=["כל הכבוד! מצאת את המילה 🌟","איזה יופי, המילה הגיעה אלייך 💛","נהדר! עבדת יפה ✨","מעולה! המוח שלך עשה עבודה מצוינת 🌈"];
+var PRAISE_ALMOST=["יפה שניסית! זה לא פשוט, ואת עושה את זה מצוין 💛","כל ניסיון עוזר למוח ללמוד 🌱","עכשיו את מכירה את המילה עוד קצת יותר טוב 🌈"];
+var PRAISE_REVEAL=["זה בסדר גמור! לפעמים מילים מתחבאות, והנה היא כאן 💛","כולנו שוכחים מילים לפעמים. אפשר להגיד אותה ביחד 🌿","יפה ששאלת! נחזור על המילה הזאת בהמשך, בעדינות 🌼"];
+
+var TOOLS=[
+ {e:"👀",t:"תארי איך זה נראה",d:"איזה צבע? איזה גודל? מאיזה חומר? אפשר לתאר גם בלי לומר את השם."},
+ {e:"🗺️",t:"איפה רואים את זה?",d:"בבית? בחוץ? במטבח? בגן? תחשבי על המקום שבו פגשת את זה."},
+ {e:"🙌",t:"הראי בגוף",d:"אפשר להראות בידיים, לעשות תנועה או להעמיד פנים שמשתמשים בזה."},
+ {e:"👏",t:"מחיאות כפיים",d:"מחאי כפיים לפי החלקים של המילה: כמה מחיאות יש בה?"},
+ {e:"🔄",t:"מילה דומה",d:"מה עוד דומה לזה? אולי מילה אחרת שקשורה אליו עוזרת למילה הנכונה להגיע."},
+ {e:"🌬️",t:"נשימה ורגע",d:"נשימה עמוקה, ולהגיד לעצמי: אני יכולה לקחת את הזמן. אין למהר."}
+];
+
+/* ---------- אחסון ---------- */
+function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+var LOADED=load("wg.settings")||{};
+var S=Object.assign({},DEFAULTS,LOADED);
+var VER=LOADED.v||1;
+if(VER<2){S.levels=[1,2,3];S.levelMode="auto";S.level=1}
+if(VER<3&&S.hints.indexOf(3)>-1&&S.hints.indexOf(4)<0)S.hints=S.hints.concat([4]);
+S.v=3;
+if(!(S.custom instanceof Array))S.custom=[];
+function addCustom(c){
+  WORDS.push({w:c.w,e:c.e||"🔹",cat:c.cat||"home",lvl:c.lvl||1,syl:c.syl||2,h1:c.h1||"",h2:c.h2||"",act:!!c.act,sent:c.sent||"",cust:true});
+  if(c.nk)NIKUD[c.w]=c.nk;
+}
+S.custom.forEach(addCustom);
+if(!(S.levels instanceof Array))S.levels=[1,2,3];
+S.level=Math.max(1,Math.min(10,+S.level||1));
+var ST=load("wg.stats")||{rounds:0,words:{}};
+var INTERVALS=[0,1,3,7,14,30];
+if(!ST.words)ST.words={};
+if(!ST.log)ST.log=[];
+function saveS(){save("wg.settings",S)}
+function saveST(){save("wg.stats",ST)}
+
+/* ---------- כלים ---------- */
+function $(id){return document.getElementById(id)}
+function html(s){var a=$("app");a.innerHTML=s;window.scrollTo(0,0)}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+var AC=null;
+function ac(){
+  if(!S.sounds)return null;
+  try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();return AC}catch(e){return null}
+}
+function tone(f,t0,d,v){
+  var a=ac();if(!a)return;
+  var o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;
+  o.type="sine";o.frequency.value=f;
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v||0.06,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+0.05);
+}
+var sfx={
+  tap:function(){tone(660,0,.12,.04)},
+  soft:function(){tone(440,0,.25,.05);tone(523,.12,.3,.05)},
+  good:function(){[523,659,784].forEach(function(f,i){tone(f,i*.12,.5,.06)})},
+  big:function(){[523,659,784,1047].forEach(function(f,i){tone(f,i*.16,.8,.06)})},
+  tick:function(){tone(880,0,.09,.06)}
+};
+/*AUDIO_START*/
+var AUDIO={};
+/*AUDIO_END*/
+var curAudio=null;
+function sayWord(w){
+  var src=AUDIO[w];
+  if(!src){say(w);return}
+  try{
+    stopSpeak();
+    if(curAudio){curAudio.pause();curAudio=null}
+    var a=new Audio(src);curAudio=a;
+    var p=a.play();
+    if(p&&p.catch)p.catch(function(){say(w)});
+  }catch(e){say(w)}
+}
+function saySentence(w){
+  var src=AUDIO["S:"+w.w];
+  if(!src){say(sentOf(w).replace(/[\[\]]/g,""));return}
+  try{
+    stopSpeak();
+    if(curAudio){curAudio.pause();curAudio=null}
+    var a=new Audio(src);curAudio=a;
+    var pr=a.play();
+    if(pr&&pr.catch)pr.catch(function(){say(sentOf(w).replace(/[\[\]]/g,""))});
+  }catch(e){say(sentOf(w).replace(/[\[\]]/g,""))}
+}
+var toastT=null;
+function toast(t){
+  var el=document.getElementById("toast");
+  if(!el){el=document.createElement("div");el.id="toast";
+    el.style.cssText="position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 90px);max-width:520px;margin:0 auto;background:#1e293b;color:#fff;border-radius:18px;padding:14px 18px;font-size:18px;text-align:center;z-index:50";
+    document.body.appendChild(el)}
+  el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},6000);
+}
+var warned=false;
+function heVoice(){
+  try{
+    var v=speechSynthesis.getVoices()||[];
+    for(var i=0;i<v.length;i++){if(/^(he|iw)/i.test((v[i].lang||"").replace("_","-")))return v[i]}
+  }catch(e){}
+  return null;
+}
+function say(t){
+  try{
+    if(!("speechSynthesis" in window)||typeof SpeechSynthesisUtterance==="undefined"){
+      if(!warned){warned=true;toast("ההקראה לא נתמכת באפליקציה או בדפדפן הזה. אפשר לקרוא את המילה ביחד בקול 💛")}
+      return;
+    }
+    var voice=heVoice();
+    var all=speechSynthesis.getVoices()||[];
+    if(!voice&&all.length&&!warned){warned=true;toast("לא מותקן קול עברי במכשיר. בהגדרות: שפה ← המרת טקסט לדיבור, אפשר להתקין קול עברי 💛")}
+    speechSynthesis.cancel();
+    setTimeout(function(){
+      var u=new SpeechSynthesisUtterance(t);
+      u.lang="he-IL";u.rate=.85;u.volume=1;
+      if(voice)u.voice=voice;
+      speechSynthesis.speak(u);
+      if(speechSynthesis.paused)speechSynthesis.resume();
+    },60);
+  }catch(e){}
+}
+try{if("speechSynthesis" in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices()}}}catch(e){}
+function stopSpeak(){
+  try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
+  try{if(curAudio){curAudio.pause();curAudio=null}}catch(e){}
+}
+
+/* ---------- בחירת מילים ---------- */
+function targetLevels(){
+  if(S.levelMode==="manual")return S.levels.length?S.levels.slice():[1,2,3,4,5,6,7,8,9,10];
+  var L=S.level;
+  return L>1?[L-1,L]:[L];
+}
+function pool(sentOnly){
+  var base=WORDS.filter(function(w){return S.cats.indexOf(w.cat)>-1&&(!sentOnly||sentOf(w))});
+  if(!base.length)base=WORDS.filter(function(w){return !sentOnly||sentOf(w)});
+  var T=targetLevels(),need=Math.max(S.perRound,6);
+  function dist(w){var m=99;T.forEach(function(t){m=Math.min(m,Math.abs(w.lvl-t))});return m}
+  for(var d=0;d<=9;d++){
+    var p=base.filter(function(w){return dist(w)<=d});
+    if(p.length>=need)return p;
+  }
+  return base;
+}
+function pickRound(sentOnly){
+  var p=pool(sentOnly);
+  var sc={};
+  p.forEach(function(w){
+    var s=ST.words[w.w]||{seen:0,hard:0};
+    var now=Date.now(),sched=s.seen?((s.due||0)<=now?-0.2:0.9):0;
+    sc[w.w]=Math.random()+sched-Math.min(s.hard,3)*0.15+((S.levelMode!=="manual"&&w.lvl<S.level)?0.6:0)+(w.cust?-0.5:0);
+  });
+  p.sort(function(a,b){return sc[a.w]-sc[b.w]});
+  return shuffle(p.slice(0,Math.min(S.perRound,p.length)));
+}
+function optionsFor(w){
+  var same=shuffle(WORDS.filter(function(x){return x.cat===w.cat&&x.w!==w.w&&x.act===w.act}));
+  var other=shuffle(WORDS.filter(function(x){return x.cat!==w.cat&&x.w!==w.w&&x.act===w.act}));
+  return shuffle([w].concat(same.concat(other).slice(0,2)));
+}
+function norm(s){return String(s).replace(/[\u0591-\u05C7]/g,"").replace(/[\s"'׳״\-]/g,"")}
+
+/* ---------- מצב ---------- */
+var R=null,C=null,nudgeT=null;
+function clearNudge(){if(nudgeT){clearTimeout(nudgeT);nudgeT=null}}
+
+/* ---------- מסך הבית ---------- */
+function levelPickerHtml(){
+  var inL=WORDS.filter(function(w){return w.lvl===S.level&&!w.cust}).slice(0,5).map(function(w){return w.e}).join(" ");
+  return '<div class="lvlpick" dir="ltr">'+
+    '<button class="lvbtn" id="lvDown" type="button" aria-label="רמה קלה יותר"'+(S.level<=1?' disabled':'')+'>−</button>'+
+    '<div class="lvmid" dir="rtl"><div class="lvl" dir="ltr" role="img" aria-label="רמה '+S.level+' מתוך 10">'+levelDots()+'</div>'+
+    '<div class="lvname">רמה '+S.level+' מתוך 10</div>'+
+    '<div class="lvemo" aria-hidden="true">'+inL+'</div></div>'+
+    '<button class="lvbtn" id="lvUp" type="button" aria-label="רמה קשה יותר"'+(S.level>=10?' disabled':'')+'>+</button></div>';
+}
+function levelDots(){var h="";for(var i=1;i<=10;i++)h+='<i class="ld'+(i<=S.level?' on':'')+'"></i>';return h}
+function renderHome(){
+  clearNudge();stopSpeak();
+  html('<section class="home">'+
+    '<div class="hero" aria-hidden="true">🌈</div>'+
+    '<h1>מילה אחרי מילה</h1>'+
+    '<p class="sub" id="greet"></p>'+
+    (S.allowPick!==false?levelPickerHtml():'')+
+    '<button class="btn big" id="start">משחק מילים 🌟</button>'+
+    '<button class="btn big alt" id="startS">משחק משפטים 💬</button>'+
+    '<p class="hintline">בלי שעון ובלי לחץ. אפשר לקחת את כל הזמן 💛</p>'+
+    '<button class="gear" id="gear" aria-label="הגדרות למלווים, לחיצה ארוכה לפתיחה">⚙️</button>'+
+    '</section>');
+  $("greet").textContent=(S.name?("שלום "+S.name+"! "):"")+"בואי נשחק קצת עם מילים.";
+  $("start").onclick=function(){sfx.tap();startRound(false)};
+  $("startS").onclick=function(){sfx.tap();startRound(true)};
+  function setLevel(n){
+    n=Math.max(1,Math.min(10,n));
+    S.level=n;S.levelMode="auto";saveS();sfx.tap();renderHome();
+  }
+  if($("lvDown"))$("lvDown").onclick=function(){setLevel(S.level-1)};
+  if($("lvUp"))$("lvUp").onclick=function(){setLevel(S.level+1)};
+  var g=$("gear"),hold=null;
+  function cancel(){clearTimeout(hold);g.classList.remove("holding")}
+  g.addEventListener("pointerdown",function(){g.classList.add("holding");hold=setTimeout(function(){cancel();openParent()},1200)});
+  ["pointerup","pointerleave","pointercancel"].forEach(function(ev){g.addEventListener(ev,cancel)});
+  g.addEventListener("contextmenu",function(e){e.preventDefault()});
+  g.addEventListener("keydown",function(e){if(e.key==="Enter")openParent()});
+}
+
+/* ---------- סבב ---------- */
+function startRound(sent){
+  var words=pickRound(!!sent);
+  R={q:words.slice(),i:0,total:words.length,done:0,practiced:[],retried:{},retryCount:0,res:[],sent:!!sent};
+  renderPlay();
+}
+
+function renderPlay(){
+  clearNudge();stopSpeak();
+  var w=R.q[R.i];
+  var sentMode=!!(R.sent&&sentParts(w));
+  var picHidden=sentMode&&(S.sentNoPic||w.lvl>=8);
+  C={w:w,hints:0,revealed:false,wrong:0,order:(picHidden?[5]:[]).concat(hintOrderFor(w)),stages:[],finished:false,sent:sentMode};
+  var dots="";
+  for(var i=0;i<R.total;i++){
+    dots+='<span class="dot'+(i<R.done?' done':'')+((!w.retry&&i===R.done)?' cur':'')+'"></span>';
+  }
+  var prompt=sentMode?"איזו מילה חסרה במשפט?":(w.act?"מה עושים כאן?":"מה זה?");
+  var ans="";
+  if(S.mode==="say"){
+    ans='<button class="btn big" id="said">אמרתי! 🗣️</button>';
+  }else if(S.mode==="choose"){
+    ans='<div class="opts" id="opts">'+optionsFor(w).map(function(o){return '<button class="opt" data-w="'+esc(o.w)+'">'+esc(nk(o.w))+'</button>'}).join("")+'</div>';
+  }else{
+    ans='<input class="typed" id="typed" type="text" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="הקלידי את המילה">'+
+        '<button class="btn" id="check">זו המילה! ✔️</button>';
+  }
+  var hintBtn=S.hints.length?'<button class="btn warm" id="hintBtn">💡 צריכה רמז?</button>':'';
+  html('<div class="top">'+
+      '<button class="icon" id="homeBtn" aria-label="סיימנו להיום">🏠</button>'+
+      '<div class="dots" role="progressbar" aria-label="התקדמות בסבב">'+(w.retry?'<span class="retrytag">🔁 חזרה קטנה</span>':dots)+'</div>'+
+      '<div style="width:52px"></div></div>'+
+    '<main class="stage">'+
+      '<div class="card"><div class="emoji" id="emoji" aria-hidden="true">'+(picHidden?'❔':w.e)+'</div>'+
+        '<div class="prompt" id="prompt">'+prompt+' <span style="font-weight:400;font-size:19px;color:#475569">אפשר לקחת את הזמן</span></div>'+
+        (sentMode?'<div class="sent" id="sentBox">'+sentBlank(w)+'</div>':'')+
+        '<div id="wordBox" hidden></div></div>'+
+      '<div id="hints" aria-live="polite"></div>'+
+      '<div id="answer">'+ans+'</div>'+
+      '<div class="msg" id="msg"></div>'+
+      '<div class="row" id="tools">'+hintBtn+'<button class="btn alt" id="toolBtn">🧰 עזרי מילים</button></div>'+
+      '<div style="text-align:center"><button class="link" id="reveal">גלי לי את המילה</button></div>'+
+    '</main>');
+  $("homeBtn").onclick=function(){sfx.tap();renderHome()};
+  $("toolBtn").onclick=function(){sfx.tap();openToolbox()};
+  $("reveal").onclick=function(){revealWord()};
+  if(S.hints.length)$("hintBtn").onclick=function(){nextHint()};
+  if(S.mode==="say"){
+    $("said").onclick=function(){sfx.tap();showWord();askConfirm()};
+  }else if(S.mode==="choose"){
+    Array.prototype.forEach.call(document.querySelectorAll(".opt"),function(b){
+      b.onclick=function(){
+        if(C.finished)return;
+        if(b.getAttribute("data-w")===w.w){sfx.good();showWord();praiseStep("good","correct")}
+        else{C.wrong++;sfx.soft();b.classList.add("soft");b.disabled=true;$("msg").textContent="כמעט! אפשר לנסות שוב או לבקש רמז 💛"}
+      };
+    });
+  }else{
+    var inp=$("typed");
+    var submit=function(){
+      if(C.finished)return;
+      var v=norm(inp.value);if(!v)return;
+      var t=norm(w.w),t2=w.act?t.slice(1):t;
+      if(v===t||v===t2){sfx.good();showWord();praiseStep("good","correct")}
+      else{C.wrong++;sfx.soft();$("msg").textContent="כמעט! אפשר לנסות שוב או לבקש רמז 💛"}
+    };
+    $("check").onclick=submit;
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter")submit()});
+  }
+  updateHintBtn();
+  if(S.nudge&&S.hints.length){
+    var me=C;
+    nudgeT=setTimeout(function(){
+      if(C===me&&!C.finished&&C.hints<C.order.length&&$("hintBtn"))$("hintBtn").classList.add("nudge");
+    },25000);
+  }
+}
+
+function updateHintBtn(){
+  var b=$("hintBtn");if(!b)return;
+  if(C.hints>=C.order.length){b.disabled=true;b.textContent="💛 את עושה את זה מצוין";b.classList.remove("nudge");return}
+  b.textContent=C.hints===0?"💡 צריכה רמז?":"💡 עוד רמז";
+}
+
+function firstSyl(w){
+  var wd=NIKUD[w.w];
+  if(!wd)return "";
+  var i=0,n=wd.length;
+  function isMark(c){return c>="\u0591"&&c<="\u05C7"}
+  function isLet(c){return c>="\u05D0"&&c<="\u05EA"}
+  function isVowel(c){return c>="\u05B1"&&c<="\u05BB"}
+  function cons(){
+    var s=wd.charAt(i++),v=false,sh=false;
+    while(i<n&&isMark(wd.charAt(i))){var m=wd.charAt(i);if(isVowel(m))v=true;else if(m==="\u05B0")sh=true;s+=m;i++}
+    if(s.charAt(0)==="ו"&&s.indexOf("\u05BC")>0)v=true;
+    return {s:s,v:v,sh:sh};
+  }
+  if(w.act){
+    if(!isLet(wd.charAt(0)))return "";
+    cons();
+    if(i<n&&wd.charAt(i)==="י"&&i+1<n&&isLet(wd.charAt(i+1)))i++;
+  }
+  if(i>=n||!isLet(wd.charAt(i)))return "";
+  var out="",c,g=0;
+  do{c=cons();out+=c.s;g++}while(!c.v&&g<3&&i<n&&isLet(wd.charAt(i)));
+  return out;
+}
+function hintOrderFor(w){
+  var base=S.hintOrder==="pho"?[3,4,1,2]:[1,2,3,4];
+  return base.filter(function(x){
+    if(S.hints.indexOf(x)<0)return false;
+    if(x===1&&!w.h1)return false;
+    if(x===2&&!w.h2)return false;
+    if(x===4&&!firstSyl(w))return false;
+    return true;
+  });
+}
+function syllableText(n){return n===1?"הברה אחת":n===2?"שתי הברות":n+" הברות"}
+
+function nextHint(){
+  if(C.finished||C.hints>=C.order.length)return;
+  sfx.tap();
+  var lvl=C.order[C.hints];C.hints++;C.stages.push(lvl);
+  var w=C.w,box=document.createElement("div");box.className="bubble";
+  if(lvl===5){
+    box.innerHTML='<small>🖼️ הנה תמונה</small><div style="text-align:center;font-size:56px">'+w.e+'</div>';
+    var em=$("emoji");if(em)em.textContent=w.e;
+  }else if(lvl===1){
+    box.innerHTML='<small>🧠 רמז על המשמעות</small>'+esc(w.h1);
+    if(S.speakHints)say(w.h1);
+  }else if(lvl===2){
+    box.innerHTML='<small>🧭 רמז על המקום והתפקיד</small>'+esc(w.h2);
+    if(S.speakHints)say(w.h2);
+  }else if(lvl===4){
+    var fs=firstSyl(w);
+    box.innerHTML='<small>🔤 רמז: ההברה הראשונה</small>המילה מתחילה ב־<div class="letter" style="text-align:center" dir="rtl">'+esc(fs)+'…</div>';
+  }else{
+    var ch=w.act?w.w.charAt(1):w.w.charAt(0);
+    var vowelish=(ch==="א"||ch==="ע");
+    var lead=w.act?'אחרי ה־ל׳ המילה מתחילה '+(vowelish?'באות':'בצליל'):'המילה מתחילה '+(vowelish?'באות':'בצליל');
+    var d="";for(var i=0;i<w.syl;i++)d+="<i></i>";
+    box.innerHTML='<small>🔤 רמז על הצליל</small>'+lead+'<div class="letter" style="text-align:center">«'+esc(ch)+'»</div>'+
+      '<div style="text-align:center">ויש בה '+syllableText(w.syl)+'</div><div class="syl" aria-hidden="true">'+d+'</div>'+
+      '<div style="text-align:center"><button class="spk" type="button">👏 בואי נמחא כפיים</button></div>';
+    var btn=box.querySelector(".spk");
+    btn.onclick=function(){
+      var dd=box.querySelectorAll(".syl i");
+      Array.prototype.forEach.call(dd,function(x){x.classList.remove("pop")});
+      Array.prototype.forEach.call(dd,function(x,k){setTimeout(function(){x.classList.add("pop");sfx.tick()},k*520)});
+    };
+    if(S.speakHints)say("בה יש "+syllableText(w.syl));
+  }
+  $("hints").appendChild(box);
+  $("msg").textContent="";
+  var b=$("hintBtn");if(b)b.classList.remove("nudge");
+  clearNudge();
+  updateHintBtn();
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function showWord(){
+  var w=C.w,wb=$("wordBox");
+  $("prompt").hidden=true;
+  wb.hidden=false;
+  wb.innerHTML='<div class="word">'+esc(nk(w.w))+'</div><button class="spk" id="spk" type="button">🔊 לשמוע</button>'+
+    (C.sent?'<div class="sentfull">'+sentFull(w)+'</div><button class="spk" id="spkS" type="button">🔊 לשמוע את המשפט</button>':'');
+  $("spk").onclick=function(){sayWord(w.w)};
+  if(C.sent){
+    $("spkS").onclick=function(){saySentence(w)};
+    if($("sentBox"))$("sentBox").hidden=true;
+    var em2=$("emoji");if(em2)em2.textContent=w.e;
+  }
+  if(S.speakWord)sayWord(w.w);
+  C.finished=true;clearNudge();
+  $("tools").hidden=true;$("reveal").parentNode.hidden=true;$("msg").textContent="";
+}
+
+function askConfirm(){
+  $("answer").innerHTML='<div class="bubble q" style="text-align:center">זו המילה שחשבת עליה?</div>'+
+    '<div class="row" style="margin-top:10px"><button class="btn" id="yes">כן, זו היא! 🎉</button><button class="btn alt" id="almost">חשבתי על מילה אחרת 💛</button></div>';
+  $("yes").onclick=function(){sfx.good();praiseStep("good")};
+  $("almost").onclick=function(){sfx.soft();praiseStep("almost")};
+}
+
+function revealWord(){
+  if(C.finished)return;
+  sfx.soft();C.revealed=true;showWord();praiseStep("revealed");
+}
+
+function praiseStep(outcome){
+  var text=pick(outcome==="good"?PRAISE_GOOD:outcome==="almost"?PRAISE_ALMOST:PRAISE_REVEAL);
+  var sentUI="";
+  if(C.sent){
+    sentUI='<div class="bubble q" style="text-align:center;margin-top:10px">עכשיו נגיד את כל המשפט ביחד 🗣️<br><button class="spk" id="saidS" type="button">אמרתי את המשפט</button></div>'+
+      '<div style="text-align:center;margin-top:4px"><button class="link" id="ownS" type="button">✨ אני רוצה לחשוב על משפט משלי</button></div><div id="ownBox"></div>';
+  }
+  var prod=(outcome==="good"||C.sent)?'':'<div class="bubble q" style="text-align:center;margin-top:10px">בואי נגיד את המילה ביחד, פעם או פעמיים 🗣️<br><button class="spk" id="said2" type="button">אמרתי</button></div>';
+  $("answer").innerHTML='<div class="bubble good" style="text-align:center">'+text+'</div>'+prod+sentUI+
+    '<button class="btn big" id="next" style="margin-top:10px">להמשיך ➡️</button>';
+  if(C.sent){
+    $("saidS").onclick=function(){sfx.good();this.textContent="יפה מאוד 💛"};
+    $("ownS").onclick=function(){
+      var w=C.w;
+      var st=shuffle(w.act?["אני אוהבת","בא לי","כיף","קל לי","קשה לי"]:["אני רואה","אני אוהבת","היום ראיתי","אצלנו בבית יש","פעם אחת"]).slice(0,3);
+      $("ownBox").innerHTML='<div class="bubble" style="margin-top:8px;text-align:center">המילה: <b>'+esc(nk(w.w))+'</b><br>אפשר להתחיל כך:<div class="chips">'+st.map(function(x){return '<span class="chip">'+esc(x)+'…</span>'}).join("")+'</div><button class="spk" id="saidOwn" type="button">אמרתי משפט משלי</button></div>';
+      $("saidOwn").onclick=function(){sfx.good();this.textContent="איזה יופי 💛"};
+      this.hidden=true;
+      $("ownBox").scrollIntoView({behavior:"smooth",block:"nearest"});
+    };
+  }
+  if($("said2"))$("said2").onclick=function(){sfx.good();this.textContent="יפה מאוד 💛"};
+  $("next").onclick=function(){sfx.tap();finishWord(outcome)};
+  $("next").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function finishWord(outcome){
+  var w=C.w;
+  var rec=ST.words[w.w]||(ST.words[w.w]={seen:0,hard:0});
+  rec.seen++;
+  var hard=(outcome!=="good")||C.hints>=3;
+  if(hard)rec.hard++;
+  ST.log.push({t:Date.now(),w:w.w,o:outcome,h:C.hints,hs:C.stages.slice(),r:!!w.retry,s:R.sent?1:0});
+  if(!w.retry){
+    rec.box=hard?0:Math.min((rec.box||0)+1,INTERVALS.length-1);
+    rec.due=Date.now()+INTERVALS[rec.box]*864e5;
+  }
+  if(ST.log.length>400)ST.log=ST.log.slice(-400);
+  if(!w.retry){
+    R.done++;R.practiced.push(w);R.res.push({l:w.lvl,ok:!hard});
+  }
+  if(hard&&R.retryCount<3&&(R.retried[w.w]||0)<2){
+    R.retried[w.w]=(R.retried[w.w]||0)+1;R.retryCount++;
+    R.q.splice(Math.min(R.q.length,R.i+4),0,Object.assign({},w,{retry:true}));
+  }
+  saveST();
+  R.i++;
+  if(R.i>=R.q.length)endRound();else renderPlay();
+}
+
+function endRound(){
+  ST.rounds=(ST.rounds||0)+1;saveST();
+  var up=false;
+  if(S.levelMode!=="manual"&&S.level<10){
+    var at=R.res.filter(function(x){return x.l>=S.level});
+    var okN=at.filter(function(x){return x.ok}).length;
+    if(at.length>=3&&okN/at.length>=0.75){S.level++;saveS();up=true}
+  }
+  clearNudge();stopSpeak();
+  var n=R.practiced.length;
+  var emojis=R.practiced.map(function(w){return w.e}).join(" ");
+  var hardW=R.practiced.filter(function(w){var r=ST.words[w.w];return r&&r.hard>0});
+  var carry=R.practiced.length?pick(hardW.length?hardW:R.practiced):null;
+  html('<section class="celebrate">'+
+    '<div class="hero" aria-hidden="true">🎉</div>'+
+    '<h1>כל הכבוד'+(S.name?' '+esc(S.name):'')+'!</h1>'+
+    '<p class="sub">עבדת יפה על '+n+(n===1?' מילה':' מילים')+'. כל מילה היא צעד קטן קדימה 💛</p>'+
+    '<div class="stars" aria-hidden="true">'+new Array(Math.min(n,8)+1).join("⭐")+'</div>'+
+    '<div class="practiced" aria-hidden="true">'+emojis+'</div>'+
+    (carry?'<div class="bubble q">🏠 משימה קטנה לבית: נסי להגיד היום את המילה <b>'+esc(nk(carry.w))+'</b> פעם אחת, כשרואים או עושים משהו שקשור אליה.</div>':'')+
+    (up?'<div class="bubble good">🌟 עלית לרמה '+S.level+'! מילים חדשות מחכות לך</div>':'')+
+    '<button class="btn big" id="again">סבב נוסף 🌟</button>'+
+    '<button class="btn alt" id="end">סיימנו להיום 🏠</button>'+
+    '</section>');
+  var wasSent=R.sent;
+  $("again").onclick=function(){sfx.tap();startRound(wasSent)};
+  $("end").onclick=function(){sfx.tap();renderHome()};
+  sfx.big();confetti();
+}
+
+function confetti(){
+  var box=document.createElement("div");box.className="conf";box.setAttribute("aria-hidden","true");
+  var set=["✨","🌟","💛","🎈","🌈","🌸"];
+  for(var i=0;i<24;i++){
+    var s=document.createElement("span");
+    s.textContent=pick(set);
+    s.style.left=(Math.random()*96)+"%";
+    s.style.animationDuration=(6+Math.random()*4)+"s";
+    s.style.animationDelay=(Math.random()*2)+"s";
+    s.style.setProperty("--dx",(Math.random()*80-40)+"px");
+    box.appendChild(s);
+  }
+  $("app").appendChild(box);
+}
+
+/* ---------- ארגז כלים ---------- */
+function openToolbox(){
+  var sh=$("sheet");
+  sh.innerHTML='<div class="sheet" role="dialog" aria-label="עזרי מילים">'+
+    '<h2>🧰 עזרי מילים</h2>'+
+    '<p class="note" style="font-size:18px">כשמילה נתקעת, אפשר לנסות אחד מהרעיונות האלה. אין למהר.</p>'+
+    '<div class="tools-grid">'+TOOLS.map(function(t,i){return '<button class="tool" data-i="'+i+'"><span>'+t.e+'</span>'+t.t+'</button>'}).join("")+'</div>'+
+    '<div class="tooltip" id="tip">לחצי על אחד הכרטיסים 💛</div>'+
+    '<button class="btn" id="closeTools" style="margin-top:14px">חוזרים למשחק</button></div>';
+  sh.hidden=false;
+  Array.prototype.forEach.call(sh.querySelectorAll(".tool"),function(b){
+    b.onclick=function(){
+      sfx.tap();
+      Array.prototype.forEach.call(sh.querySelectorAll(".tool"),function(x){x.classList.remove("on")});
+      b.classList.add("on");
+      var t=TOOLS[+b.getAttribute("data-i")];
+      $("tip").textContent=t.d;
+      if(S.speakHints)say(t.d);
+    };
+  });
+  $("closeTools").onclick=closeToolbox;
+  sh.onclick=function(e){if(e.target===sh)closeToolbox()};
+}
+function closeToolbox(){$("sheet").hidden=true;$("sheet").innerHTML="";stopSpeak()}
+
+/* ---------- סיכום ושיתוף ---------- */
+function fmtDate(t){var d=new Date(t);return d.getDate()+"."+(d.getMonth()+1)+"."+d.getFullYear()}
+function emojiOf(word){var f=WORDS.filter(function(x){return x.w===word})[0];return f?f.e+" ":""}
+function topWords(map,n){
+  return Object.keys(map).sort(function(a,b){return map[b]-map[a]}).slice(0,n).map(function(k){return emojiOf(k)+k}).join("، ");
+}
+function buildReport(days){
+  var from=days?Date.now()-days*864e5:0;
+  var L=(ST.log||[]).filter(function(x){return x.t>=from&&!x.r});
+  var named=S.shareName&&S.name;
+  var head="סיכום תרגול שליפת מילים"+(named?" – "+S.name:"");
+  var period=days?("ב־"+days+" הימים האחרונים"):"בכל התקופה";
+  if(!L.length)return head+"\n\nעדיין אין נתוני תרגול "+period+".";
+  var dayset={};L.forEach(function(x){dayset[fmtDate(x.t)]=1});
+  var dayN=Object.keys(dayset).length;
+  var free=0,some=0,full=0,almost=0,rev=0,hardM={},easyM={},stage3=0;
+  L.forEach(function(x){
+    if(x.h>=3)stage3++;
+    if(x.o==="revealed"){rev++;hardM[x.w]=(hardM[x.w]||0)+1}
+    else if(x.o==="almost"){almost++;hardM[x.w]=(hardM[x.w]||0)+1}
+    else if(x.h===0){free++;easyM[x.w]=(easyM[x.w]||0)+1}
+    else if(x.h<=2){some++}
+    else{full++;hardM[x.w]=(hardM[x.w]||0)+1}
+  });
+  Object.keys(hardM).forEach(function(k){delete easyM[k]});
+  var s=[head,"תקופה: "+period+" ("+dayN+(dayN===1?" יום תרגול":" ימי תרגול")+", "+L.length+" מילים)",""];
+  var lvs=L.map(function(x){var f=WORDS.filter(function(z){return z.w===x.w})[0];return f?f.lvl:0}).filter(Boolean);
+  if(lvs.length){
+    var lo=Math.min.apply(null,lvs),hi=Math.max.apply(null,lvs);
+    s.push("רמות שתורגלו: "+(lo===hi?lo:lo+" עד "+hi)+" (מתוך 10)"+(S.levelMode!=="manual"?". הרמה הנוכחית: "+S.level:""));
+    s.push("");
+  }
+  var sN=L.filter(function(x){return x.s}).length;
+  if(sN){s.push("תרגול במשפטים: "+sN+" מתוך "+L.length+" מילים (השלמת מילה חסרה באמצעות משפט)");s.push("")}
+  s.push("איך המילים נשלפו:");
+  s.push("• בלי רמז: "+free);
+  s.push("• עם רמז אחד או שניים: "+some);
+  s.push("• נדרשו שלושה רמזים או יותר: "+full);
+  if(almost)s.push("• חשבה על מילה אחרת: "+almost);
+  s.push("• המילה נחשפה לה: "+rev);
+  var semC=0,phoC=0;
+  L.forEach(function(x){if(x.o==="good"&&x.h>=1&&x.hs&&x.hs.length){var last=x.hs[x.hs.length-1];if(last===5)return;if(last<=2)semC++;else phoC++}});
+  if(semC+phoC>=5){s.push("");s.push("מתוך "+(semC+phoC)+" מילים שנשלפו אחרי רמז: "+semC+" אחרי רמז על משמעות או מקום, "+phoC+" אחרי רמז על צליל. אלה מספרים קטנים, ומתאימים לשיקול של איש מקצוע.")}
+  if(days){
+    var pf=from-days*864e5;
+    var P=(ST.log||[]).filter(function(x){return x.t>=pf&&x.t<from&&!x.r});
+    if(P.length>=6){
+      var pr=Math.round(100*P.filter(function(x){return x.o==="good"&&x.h===0}).length/P.length);
+      var cr=Math.round(100*free/L.length);
+      s.push("");s.push("שיעור המילים שנשלפו בלי רמז: "+cr+"% (בתקופה הקודמת: "+pr+"%). במעבר לרמות קשות יותר השיעור יכול לרדת גם כשיש התקדמות.");
+    }
+  }
+  var hw=topWords(hardM,8),ew=topWords(easyM,8);
+  s.push("");
+  s.push("מילים שדרשו יותר עזרה: "+(hw||"אין"));
+  s.push("מילים שנשלפו בקלות: "+(ew||"אין עדיין"));
+  s.push("");
+  s.push("הערה: זהו סיכום אוטומטי של תרגול במשחק. הוא אינו אבחון ואינו מחליף הערכה מקצועית. הסיכום נשלח ביוזמת המלווה בלבד.");
+  return s.join("\n");
+}
+function openUrl(u){var a=document.createElement("a");a.href=u;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}
+function phoneDigits(p){var d=String(p||"").replace(/\D/g,"");if(d.indexOf("00")===0)d=d.slice(2);if(d.charAt(0)==="0")d="972"+d.slice(1);return d}
+function repText(){var el=document.getElementById("pRep");return el?el.value:buildReport(7)}
+var REP_SUBJECT="סיכום תרגול שליפת מילים";
+function sendWA(){var d=phoneDigits(S.phone);openUrl("https://wa.me/"+(d?d:"")+"?text="+encodeURIComponent(repText()))}
+function sendTG(){openUrl("https://t.me/share/url?url=%20&text="+encodeURIComponent(repText()))}
+function sendMail(){openUrl("mailto:"+encodeURIComponent((S.email||"").trim())+"?subject="+encodeURIComponent(REP_SUBJECT)+"&body="+encodeURIComponent(repText()))}
+function copyRep(){
+  var t=repText();
+  function fb(){var el=document.getElementById("pRep");if(el){el.focus();el.select();try{document.execCommand("copy");toast("הסיכום הועתק")}catch(e){toast("אפשר לסמן ולהעתיק ידנית")}}}
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast("הסיכום הועתק")},fb);return}}catch(e){}
+  fb();
+}
+function shareRep(){
+  var t=repText();
+  try{
+    var cap=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Share;
+    if(cap){cap.share({title:REP_SUBJECT,text:t,dialogTitle:"שיתוף סיכום"}).catch(function(){});return}
+    if(navigator.share){navigator.share({title:REP_SUBJECT,text:t}).catch(function(){});return}
+  }catch(e){}
+  copyRep();
+}
+
+/* ---------- בקרת מלווים ---------- */
+function statsHtml(){
+  var hardList=Object.keys(ST.words).filter(function(k){return ST.words[k].hard>0}).sort(function(a,b){return ST.words[b].hard-ST.words[a].hard}).slice(0,8);
+  var totalWords=Object.keys(ST.words).length;
+  var h='<span class="stat">סבבים: '+(ST.rounds||0)+'</span><span class="stat">מילים שתורגלו: '+totalWords+'</span>';
+  if(hardList.length){
+    h+='<p class="note" style="margin-top:10px">מילים שדרשו יותר עזרה (כדאי לתרגל גם ביומיום):</p>';
+    hardList.forEach(function(k){
+      var w=WORDS.filter(function(x){return x.w===k})[0];
+      h+='<span class="stat">'+(w?w.e+' ':'')+esc(k)+'</span>';
+    });
+  }else h+='<p class="note" style="margin-top:10px">עדיין אין מילים שדרשו עזרה מיוחדת.</p>';
+  return h;
+}
+function cb(g,val,label,checked){
+  return '<label><input type="checkbox" data-g="'+g+'" value="'+val+'"'+(checked?' checked':'')+'> '+label+'</label>';
+}
+function tg(k,label,note){
+  return '<label><input type="checkbox" data-k="'+k+'"'+(S[k]?' checked':'')+'> '+label+'</label>'+(note?'<p class="note">'+note+'</p>':'');
+}
+function openParent(){
+  var d=$("drawer");
+  var lvlOptions="",lvlChecks="",lvlHelp="";
+  for(var li=1;li<=10;li++){
+    var inL=WORDS.filter(function(w){return w.lvl===li});
+    lvlOptions+='<option value="'+li+'"'+(li===S.level?' selected':'')+'>רמה '+li+'</option>';
+    lvlChecks+=cb("levels",li,"רמה "+li+" ("+inL.length+")",S.levels.indexOf(li)>-1);
+    lvlHelp+='<p class="note"><b>רמה '+li+':</b> '+esc(LEVEL_INFO[li-1])+'<br>'+inL.slice(0,6).map(function(w){return w.e}).join(" ")+'</p>';
+  }
+  var catsH=Object.keys(CATS).map(function(k){
+    var n=WORDS.filter(function(w){return w.cat===k}).length;
+    return cb("cats",k,CATS[k].icon+" "+CATS[k].name+" ("+n+")",S.cats.indexOf(k)>-1);
+  }).join("");
+  d.innerHTML='<div class="sheet" role="dialog" aria-label="בקרת מלווים">'+
+    '<h2>⚙️ בקרת הורים / מלווים</h2>'+
+    '<p class="note">השינויים נשמרים אוטומטית. המסך הזה לא מופיע לילדה.</p>'+
+    '<h3>שם (לא חובה)</h3><input type="text" id="pName" maxlength="20" placeholder="שם הילדה" value="'+esc(S.name)+'">'+
+    '<h3>כמה מילים בסבב: <span id="pnVal">'+S.perRound+'</span></h3>'+
+    '<input type="range" id="pPer" min="5" max="8" step="1" value="'+S.perRound+'">'+
+    '<h3>רמות קושי (עשר רמות)</h3>'+
+    '<label><input type="radio" name="lmode" value="auto"'+(S.levelMode!=="manual"?' checked':'')+'> אוטומטי: עולות לרמה הבאה אחרי סבב מוצלח</label>'+
+    '<label><input type="radio" name="lmode" value="manual"'+(S.levelMode==="manual"?' checked':'')+'> ידני: בוחרים אילו רמות לתרגל</label>'+
+    tg("allowPick","לאפשר לילדה לעבור בין רמות במסך הבית (כפתורי + ו־−)","בחירה במסך הבית מעבירה למצב אוטומטי ברמה שנבחרה. אפשר לכבות כדי שרק מלווה יקבע רמה.")+
+    '<div id="lvAuto"><h3 style="font-size:17px">הרמה הנוכחית</h3><select id="pLevel">'+lvlOptions+'</select><p class="note" id="lvDesc"></p>'+
+    '<p class="note">הרמה עולה לבד אחרי סבב שבו רוב המילים נשלפו בקלות, ולעולם לא יורדת מעצמה. אפשר להוריד או להעלות כאן בכל עת. כל סבב כולל גם מילים מהרמה הקודמת לחזרה.</p></div>'+
+    '<div id="lvManual"><div class="lvgrid">'+lvlChecks+'</div></div>'+
+    '<details><summary>מה כוללת כל רמה?</summary>'+lvlHelp+'</details>'+
+    '<h3>קטגוריות</h3>'+catsH+
+    '<p class="note">אם לא נבחר דבר, יילקחו כל המילים.</p>'+
+    '<h3>איך הילדה עונה</h3>'+
+    '<label><input type="radio" name="mode" value="say"'+(S.mode==="say"?' checked':'')+'> אומרת בקול (כפתור "אמרתי!")</label>'+
+    '<label><input type="radio" name="mode" value="choose"'+(S.mode==="choose"?' checked':'')+'> בוחרת מתוך 3 אפשרויות</label>'+
+    '<label><input type="radio" name="mode" value="type"'+(S.mode==="type"?' checked':'')+'> מקלידה (אופציונלי)</label>'+
+    '<h3>משחק משפטים</h3>'+
+    tg("sentNoPic","להסתיר את התמונה בתחילת כל מילה במשחק משפטים","התמונה נחשפת כרמז. ברמות 8 עד 10 היא מוסתרת אוטומטית.")+
+    '<h3>רמזים זמינים</h3>'+
+    cb("hints",1,"🧠 רמז על המשמעות",S.hints.indexOf(1)>-1)+
+    cb("hints",2,"🧭 רמז על קטגוריה, תפקיד או מקום",S.hints.indexOf(2)>-1)+
+    cb("hints",3,"🔤 רמז על הצליל הראשון ומספר ההברות",S.hints.indexOf(3)>-1)+
+    cb("hints",4,"🔤 רמז על ההברה הראשונה (עם ניקוד)",S.hints.indexOf(4)>-1)+
+    '<h3 style="font-size:17px">סדר הרמזים</h3>'+
+    '<label><input type="radio" name="horder" value="sem"'+(S.hintOrder!=="pho"?' checked':'')+'> קודם משמעות ומקום, אחר כך צליל</label>'+
+    '<label><input type="radio" name="horder" value="pho"'+(S.hintOrder==="pho"?' checked':'')+'> קודם צליל, אחר כך משמעות ומקום</label>'+
+    '<p class="note">ילדים שונים נעזרים ברמזים שונים. הסיכום לשיתוף מראה אחרי איזה סוג רמז נשלפו המילים.</p>'+
+    '<p class="note">הכפתור "גלי לי את המילה" תמיד זמין, כדי שהילדה לא תרגיש תקועה.</p>'+
+    tg("nudge","הדגשה עדינה של כפתור הרמז אחרי זמן","רק הבהוב רך של הכפתור, בלי שעון ובלי הודעה.")+
+    '<h3>קול</h3>'+
+    tg("speakWord","הקראת המילה בקול כשהיא נחשפת")+
+    tg("speakHints","הקראת רמזים בקול")+
+    tg("sounds","צלילים נעימים")+
+    '<p class="note">ההקראה משתמשת בקול העברי של המכשיר, אם מותקן.</p>'+
+    '<h3>מילים אישיות</h3>'+
+    '<p class="note">מילים שחשובות לילדה ביומיום, כמו שם של חפץ בבית או של חיית מחמד. מחקרים מצאו שהשיפור הוא בעיקר במילים שתורגלו, ולכן כדאי להוסיף כאן מילים שבאמת חסרות לה.</p>'+
+    '<div style="display:grid;gap:8px">'+
+      '<input type="text" id="cwWord" maxlength="20" placeholder="המילה (למשל: סבתא)">'+
+      '<input type="text" id="cwEmoji" maxlength="8" placeholder="אימוג׳י (אפשר להדביק)">'+
+      '<select id="cwCat">'+Object.keys(CATS).map(function(k){return '<option value="'+k+'">'+CATS[k].name+'</option>'}).join('')+'</select>'+
+      '<select id="cwLvl">'+lvlOptions.replace(' selected','')+'</select>'+
+      '<select id="cwSyl"><option value="1">הברה אחת</option><option value="2" selected>שתי הברות</option><option value="3">שלוש הברות</option><option value="4">ארבע הברות</option><option value="5">חמש הברות</option></select>'+
+      '<label><input type="checkbox" id="cwAct"> פועל (מתחיל ב־ל׳, למשל: לרוץ)</label>'+
+      '<input type="text" id="cwH1" maxlength="80" placeholder="רמז על המשמעות (למשל: אמא של אמא)">'+
+      '<input type="text" id="cwH2" maxlength="80" placeholder="רמז על המקום או התפקיד">'+
+ '<input type="text" id="cwSent" maxlength="120" placeholder="משפט עם המילה בסוגריים מרובעים, למשל: [סבתא] באה אלינו בשבת (לא חובה)">'+
+      '<input type="text" id="cwNk" maxlength="30" placeholder="המילה עם ניקוד (לא חובה, מאפשר רמז על הברה ראשונה)">'+
+      '<button class="btn alt" id="cwAdd" type="button">הוספת מילה</button>'+
+      '<p class="note" id="cwMsg"></p><div id="cwList"></div>'+
+    '</div>'+
+    '<h3>התקדמות</h3><div id="pStats">'+statsHtml()+'</div>'+
+    '<details><summary>מה המחקר אומר, ומה לא</summary>'+
+    '<p class="note"><b>מה נבדק:</b> מחקרים בילדים עם קשיי שליפת מילים (בין 2012 ל־2017) בדקו תרגול ממוקד של משמעות המילה (תיאור, קטגוריה, תפקיד) ושל צליליה (צליל ראשון, הברה ראשונה). השליפה של המילים שתורגלו השתפרה.</p>'+
+    '<p class="note"><b>מגבלה חשובה:</b> השיפור היה בעיקר במילים שתורגלו עצמן, ופחות במילים אחרות או בשיחה, והוא נחלש עם הזמן. לכן כדאי להוסיף מילים אישיות ולהשתמש במילים גם ביומיום.</p>'+
+    '<p class="note"><b>ילדים שונים:</b> חלק מהילדים נעזרים יותר ברמזים על משמעות וחלק ברמזים על צליל. אפשר לשנות כאן את סדר הרמזים.</p>'+
+    '<p class="note"><b>שליפה חוזרת:</b> ניסיון לשלוף מילה שוב אחרי כמה מילים ואחרי כמה ימים עוזר ללמוד אותה. לכן מילה קשה חוזרת באותו סבב ובימים הבאים.</p>'+
+    '<p class="note"><b>כמה לתרגל:</b> אין מינון מוכח. בניסויים התרגול היה קצר ורגיל, למשל 15 דקות פעמיים בשבוע במשך כשמונה שבועות. סבב אחד של 5 עד 8 מילים כמה פעמים בשבוע הוא כיוון סביר, ועדיף קצר ונעים.</p>'+
+    '<p class="note"><b>מה לא ידוע:</b> לא נבדקה האפליקציה הזאת, ויש מעט מאוד מחקרים על אפליקציות לילדים בנושא. הניסוי הגדול על תרגול ממוחשב לשליפת מילים נעשה על מבוגרים אחרי שבץ. האפליקציה היא תרגול תומך ואינה תחליף להערכה ולטיפול של קלינאית תקשורת.</p>'+
+    '</details>'+
+    '<h3>שיתוף סיכום עם גורם מקצועי</h3>'+
+    '<p class="note">הסיכום נשלח רק כשלוחצים על אחד הכפתורים, ורואים אותו כאן לפני השליחה. שום דבר לא נשלח אוטומטית ולא עובר דרך שרת של האפליקציה.</p>'+
+    '<h3 style="font-size:17px">אימייל הנמען</h3><input type="text" class="ltr" id="pMail" inputmode="email" autocomplete="off" placeholder="name@example.com" value="'+esc(S.email)+'">'+
+    '<h3 style="font-size:17px">טלפון לוואטסאפ</h3><input type="text" class="ltr" id="pPhone" inputmode="tel" autocomplete="off" placeholder="050-1234567" value="'+esc(S.phone)+'">'+
+    '<p class="note">בטלגרם בוחרים את איש הקשר בתוך האפליקציה עצמה.</p>'+
+    '<h3 style="font-size:17px">תקופה</h3><select id="pPeriod"><option value="7">7 הימים האחרונים</option><option value="30">30 הימים האחרונים</option><option value="0">כל התקופה</option></select>'+
+    tg("shareName","לכלול את שם הילדה בסיכום","כברירת מחדל הסיכום אנונימי.")+
+    '<h3 style="font-size:17px">תצוגה מקדימה (אפשר לערוך)</h3><textarea id="pRep" dir="rtl"></textarea>'+
+    '<div class="sendrow">'+
+      '<button class="btn" id="sWA" type="button">💬 וואטסאפ</button>'+
+      '<button class="btn" id="sTG" type="button">✈️ טלגרם</button>'+
+      '<button class="btn" id="sMail" type="button">✉️ אימייל</button>'+
+      '<button class="btn alt" id="sShare" type="button">📤 שיתוף אחר</button>'+
+    '</div>'+
+    '<button class="link" id="sCopy" type="button">העתקת הסיכום</button>'+
+    '<button class="link" id="pReset">איפוס נתוני התקדמות</button>'+
+    '<button class="btn" id="pClose" style="margin-top:12px">סגירה</button></div>';
+  d.hidden=false;
+  var sh=d.querySelector(".sheet");
+  d.onclick=function(e){if(e.target===d)closeParent()};
+  $("pClose").onclick=closeParent;
+  $("pName").oninput=function(){S.name=this.value.trim();saveS()};
+  $("pPer").oninput=function(){S.perRound=+this.value;$("pnVal").textContent=this.value;saveS()};
+  sh.onchange=function(e){
+    var t=e.target;
+    if(t.name==="mode"){S.mode=t.value;saveS();return}
+    if(t.name==="horder"){S.hintOrder=t.value;saveS();return}
+    if(t.name==="lmode"){S.levelMode=t.value;saveS();setLvVis();refreshRep();return}
+    var g=t.getAttribute("data-g"),k=t.getAttribute("data-k");
+    if(g){
+      var arr=Array.prototype.map.call(sh.querySelectorAll('input[data-g="'+g+'"]:checked'),function(x){return g==="cats"?x.value:+x.value});
+      S[g]=arr;saveS();
+    }else if(k){S[k]=t.checked;saveS()}
+  };
+  function stripN(x){return x.replace(/[\u0591-\u05C7]/g,"")}
+  function renderCW(){
+    var h="";
+    S.custom.forEach(function(c,i){h+='<div class="stat" style="display:flex;align-items:center;gap:8px;justify-content:space-between;margin:4px 0;width:100%">'+esc(c.e||"🔹")+' '+esc(c.w)+' <button type="button" class="link" data-cwdel="'+i+'">הסרה</button></div>'});
+    $("cwList").innerHTML=h;
+    Array.prototype.forEach.call($("cwList").querySelectorAll("[data-cwdel]"),function(b){
+      b.onclick=function(){
+        var c=S.custom.splice(+b.getAttribute("data-cwdel"),1)[0];
+        for(var j=WORDS.length-1;j>=0;j--){if(WORDS[j].cust&&WORDS[j].w===c.w)WORDS.splice(j,1)}
+        delete NIKUD[c.w];saveS();renderCW();
+      };
+    });
+  }
+  $("cwLvl").value=String(S.level);
+  renderCW();
+  $("cwAdd").onclick=function(){
+    var w=$("cwWord").value.trim(),nkv=$("cwNk").value.trim(),msg=$("cwMsg");
+    if(!/^[\u05D0-\u05EA]+$/.test(w)){msg.textContent="נא להקליד מילה אחת באותיות עבריות, בלי ניקוד.";return}
+    if(WORDS.some(function(x){return x.w===w})){msg.textContent="המילה הזאת כבר קיימת.";return}
+    if(S.custom.length>=40){msg.textContent="אפשר להוסיף עד 40 מילים אישיות.";return}
+    if(nkv&&stripN(nkv)!==w){msg.textContent="הניקוד חייב להתאים לאותיות המילה בדיוק.";return}
+    var sv=$("cwSent").value.trim();
+    if(sv){var mm=sv.match(/^(.*)\[([^\]]+)\](.*)$/);if(!mm||mm[2].indexOf(w)<0||(mm[1]+mm[3]).indexOf(w)>=0){msg.textContent="במשפט צריך לסמן את המילה בסוגריים מרובעים, והיא לא יכולה להופיע גם מחוץ להם.";return}}
+    var c={sent:sv,w:w,e:$("cwEmoji").value.trim()||"🔹",cat:$("cwCat").value,lvl:+$("cwLvl").value,syl:+$("cwSyl").value,act:$("cwAct").checked,h1:$("cwH1").value.trim(),h2:$("cwH2").value.trim(),nk:nkv};
+    if(c.act&&w.charAt(0)!=="ל"){msg.textContent="פועל צריך להתחיל באות ל׳.";return}
+    S.custom.push(c);addCustom(c);saveS();
+    ["cwWord","cwEmoji","cwH1","cwH2","cwSent","cwNk"].forEach(function(id){$(id).value=""});
+    msg.textContent="נוספה: "+w;renderCW();
+  };
+  function setLvVis(){$("lvAuto").hidden=S.levelMode==="manual";$("lvManual").hidden=S.levelMode!=="manual"}
+  function lvDescUp(){$("lvDesc").textContent="רמה "+S.level+": "+LEVEL_INFO[S.level-1]}
+  setLvVis();lvDescUp();
+  $("pLevel").onchange=function(){S.level=+this.value;saveS();lvDescUp();refreshRep()};
+  function refreshRep(){$("pRep").value=buildReport(+$("pPeriod").value)}
+  $("pPeriod").value="7";refreshRep();
+  $("pPeriod").onchange=refreshRep;
+  $("pMail").oninput=function(){S.email=this.value.trim();saveS()};
+  $("pPhone").oninput=function(){S.phone=this.value.trim();saveS()};
+  sh.addEventListener("change",function(e){if(e.target&&e.target.getAttribute("data-k")==="shareName")refreshRep()});
+  $("sWA").onclick=sendWA;$("sTG").onclick=sendTG;$("sMail").onclick=sendMail;
+  $("sShare").onclick=shareRep;$("sCopy").onclick=copyRep;
+  var resetArmed=false;
+  $("pReset").onclick=function(){
+    var b=this;
+    if(!resetArmed){resetArmed=true;b.textContent="לחצי שוב כדי למחוק את כל נתוני ההתקדמות";setTimeout(function(){resetArmed=false;b.textContent="איפוס נתוני התקדמות"},5000);return}
+    resetArmed=false;b.textContent="איפוס נתוני התקדמות";
+    ST={rounds:0,words:{},log:[]};saveST();$("pStats").innerHTML=statsHtml();refreshRep();
+  };
+}
+function closeParent(){
+  var d=$("drawer");d.hidden=true;d.innerHTML="";
+  if(!R||document.querySelector(".home"))renderHome();
+}
+
+renderHome();
+})();
+</script>
+</body>
+</html>
